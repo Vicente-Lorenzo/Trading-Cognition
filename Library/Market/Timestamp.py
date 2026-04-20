@@ -37,16 +37,14 @@ class TimestampAPI(DataclassAPI):
     def Month(self) -> CycleAPI:
         return CycleAPI(Value=self.DateTime.month, Period=12)
     @property
+    def Week(self) -> CycleAPI:
+        return CycleAPI(Value=self.DateTime.isocalendar()[1], Period=52)
+    @property
     def Weekday(self) -> CycleAPI:
         return CycleAPI(Value=self.DateTime.weekday(), Period=7)
     @property
     def Day(self) -> CycleAPI:
         return CycleAPI(Value=self.DateTime.day, Period=31)
-    @property
-    def DayOfYear(self) -> CycleAPI:
-        y = self.DateTime.year
-        period = 366 if y % 4 == 0 and (y % 100 != 0 or y % 400 == 0) else 365
-        return CycleAPI(Value=self.DateTime.timetuple().tm_yday, Period=period)
     @property
     def Hour(self) -> CycleAPI:
         return CycleAPI(Value=self.DateTime.hour, Period=24)
