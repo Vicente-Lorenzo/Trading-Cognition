@@ -12,52 +12,52 @@ def overridefield(func):
 
 class DatametaAPI:
 
-    def __init__(self, cls: Type, iid: str | None = None):
-        self._cls = cls
-        self._iid = iid
+    def __init__(self, cls: Type, name: str | None = None):
+        self._cls_ = cls
+        self._name_ = name
 
-    def __getattr__(self, item: str):
+    def __getattr__(self, item: str) -> Any:
         attrs: dict[str, Any] = {
             k: v
-            for base in reversed(self._cls.mro())
+            for base in reversed(self._cls_.mro())
             if base is not object
             for k, v in base.__dict__.items()
         }
-        def get_attribute_type(name: str) -> type | None:
+        def get_attribute_type_(attr_name: str) -> type | None:
             ann = attrs.get("__annotations__", {})
-            return ann.get(name, None)
-        def get_property_type(name: str) -> type | None:
-            prop = attrs.get(name, None)
+            return ann.get(attr_name, None)
+        def get_property_type_(prop_name: str) -> type | None:
+            prop = attrs.get(prop_name, None)
             if isinstance(prop, property):
                 return prop.fget.__annotations__.get("return", None)
             return None
         fs = attrs.get("__dataclass_fields__")
         if fs is not None and (f := fs.get(item, None)) is not None:
             if isinstance(f.type, InitVar):
-                ft = get_property_type(name=item)
+                ft = get_property_type_(prop_name=item)
             elif item.startswith("_"):
                 item_name = item[1:]
                 if item_name.endswith("_"): item_name = item_name[:-1]
-                ft = get_property_type(name=item_name)
+                ft = get_property_type_(prop_name=item_name)
             else:
                 ft = f.type
-            iid = f"{self._iid}.{item}" if self._iid else item
+            attr_val = self._name_ if self._name_ else item
             if isinstance(ft, type) and issubclass(ft, DataclassAPI):
-                return DatametaAPI(cls=ft, iid=iid)
-            return iid
+                return DatametaAPI(cls=ft, name=attr_val)
+            return attr_val
         if (a := attrs.get(item, None)) is not None:
             if isinstance(a, property):
-                at = get_property_type(item)
+                at = get_property_type_(item)
             else:
-                at = get_attribute_type(item)
-            iid = f"{self._iid}.{item}" if self._iid else item
+                at = get_attribute_type_(item)
+            attr_val = self._name_ if self._name_ else item
             if isinstance(at, type) and issubclass(at, DataclassAPI):
-                return DatametaAPI(cls=at, iid=iid)
-            return iid
-        raise AttributeError(f"'{self._cls.__name__}' object has no attribute '{item}'")
+                return DatametaAPI(cls=at, name=attr_val)
+            return attr_val
+        raise AttributeError(f"'{self._cls_.__name__}' object has no attribute '{item}'")
 
     def __repr__(self) -> str:
-        return repr(self._iid if self._iid else self._cls.__name__)
+        return repr(self._name_ if self._name_ else self._cls_.__name__)
 
 @dataclass(slots=True)
 class DataclassAPI:
