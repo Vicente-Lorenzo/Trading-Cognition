@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING, Sequence
 from enum import Enum
+from typing import ClassVar
 from datetime import datetime
 from dataclasses import dataclass, field, InitVar
 
@@ -14,9 +14,6 @@ from Library.Market.Price import PriceAPI
 from Library.Universe.Security import SecurityAPI
 from Library.Universe.Contract import ContractAPI
 from Library.Utility.Typing import MISSING
-
-if TYPE_CHECKING:
-    from Library.Database.Database import DatabaseAPI
 
 class TickMode(Enum):
     Accurate = 0
@@ -49,44 +46,42 @@ class TickAPI(DatapointAPI):
     _bid_quote_conversion_: PriceAPI | None = field(default=None, init=False, repr=False)
     _contract_: ContractAPI | None = field(default=None, init=False, repr=False)
 
-    @classmethod
-    def Structure(cls) -> dict:
+    @property
+    def Key(self) -> dict:
         return {
-            cls.ID.Security: ForeignKey(pl.Int64, reference=f'"{SecurityAPI.Schema}"."{SecurityAPI.Table}"("{SecurityAPI.ID.UID}")', primary=True),
-            cls.ID.Timestamp: PrimaryKey(pl.Datetime),
-            cls.ID.Ask: pl.Float64(),
-            cls.ID.Bid: pl.Float64(),
-            cls.ID.AskBaseConversion: pl.Float64(),
-            cls.ID.BidBaseConversion: pl.Float64(),
-            cls.ID.AskQuoteConversion: pl.Float64(),
-            cls.ID.BidQuoteConversion: pl.Float64(),
-            **DatapointAPI.Structure()
+            self.ID.Security: ForeignKey(pl.Int64, reference=f'"{SecurityAPI.Schema}"."{SecurityAPI.Table}"("{SecurityAPI.ID.UID}")', primary=True),
+            self.ID.Timestamp: PrimaryKey(pl.Datetime)
         }
 
-    def __post_init__(self,
-                      security: int | str | SecurityAPI,
-                      timestamp: datetime | TimestampAPI,
-                      ask: float | PriceAPI | None,
-                      bid: float | PriceAPI | None,
-                      ask_base_conversion: float | PriceAPI | None,
-                      bid_base_conversion: float | PriceAPI | None,
-                      ask_quote_conversion: float | PriceAPI | None,
-                      bid_quote_conversion: float | PriceAPI | None,
-                      contract: ContractAPI | None,
-                      db: DatabaseAPI | None,
-                      migrate: bool,
-                      autosave: bool,
-                      autoload: bool,
-                      autooverload: bool) -> None:
-        if isinstance(security, SecurityAPI): self._security_ = security
-        elif security is not MISSING and security is not None: self._security_ = SecurityAPI(UID=security, db=db, autoload=True)
-        if isinstance(timestamp, TimestampAPI): self._timestamp_ = timestamp
-        elif timestamp is not MISSING and timestamp is not None: self._timestamp_ = TimestampAPI(DateTime=timestamp)
-        if contract is not MISSING: self._contract_ = contract
+    @property
+    def Columns(self) -> dict:
+        return {
+            self.ID.Ask: pl.Float64(),
+            self.ID.Bid: pl.Float64(),
+            self.ID.AskBaseConversion: pl.Float64(),
+            self.ID.BidBaseConversion: pl.Float64(),
+            self.ID.AskQuoteConversion: pl.Float64(),
+            self.ID.BidQuoteConversion: pl.Float64(),
+            **super().Columns
+        }
+
+    def __post_init__(self, db, migrate, autosave, autoload, autooverload, security, timestamp, ask, bid, ask_base_conversion, bid_base_conversion, ask_quote_conversion, bid_quote_conversion, contract) -> None:
+        if isinstance(security, SecurityAPI):
+            self._security_ = security
+        elif security is not MISSING and security is not None:
+            self._security_ = SecurityAPI(UID=security, db=db, autoload=True)
+        if isinstance(timestamp, TimestampAPI):
+            self._timestamp_ = timestamp
+        elif timestamp is not MISSING and timestamp is not None:
+            self._timestamp_ = TimestampAPI(DateTime=timestamp)
+        if contract is not MISSING:
+            self._contract_ = contract
         ask_price = ask.Price if isinstance(ask, PriceAPI) else ask
         bid_price = bid.Price if isinstance(bid, PriceAPI) else bid
-        if ask is not MISSING and ask is not None: self._ask_ = ask if isinstance(ask, PriceAPI) else PriceAPI(Price=ask_price, Reference=bid_price, Contract=self._contract_)
-        if bid is not MISSING and bid is not None: self._bid_ = bid if isinstance(bid, PriceAPI) else PriceAPI(Price=bid_price, Reference=ask_price, Contract=self._contract_)
+        if ask is not MISSING and ask is not None:
+            self._ask_ = ask if isinstance(ask, PriceAPI) else PriceAPI(Price=ask_price, Reference=bid_price, Contract=self._contract_)
+        if bid is not MISSING and bid is not None:
+            self._bid_ = bid if isinstance(bid, PriceAPI) else PriceAPI(Price=bid_price, Reference=ask_price, Contract=self._contract_)
         def _init_conversion_(conv: float | PriceAPI | None) -> PriceAPI | None:
             if isinstance(conv, PriceAPI): return conv
             if conv is not MISSING and conv is not None: return PriceAPI(Price=conv, Reference=None, Contract=self._contract_)
@@ -96,16 +91,6 @@ class TickAPI(DatapointAPI):
         self._ask_quote_conversion_ = _init_conversion_(ask_quote_conversion)
         self._bid_quote_conversion_ = _init_conversion_(bid_quote_conversion)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
-
-    def _fetch_(self, condition: str | None = None, parameters: dict | None = None, overload: bool = False) -> dict | None:
-        if condition is None:
-            if not self._security_ or not self._timestamp_: return None
-            condition = '"Security" = :security: AND "Timestamp" = :timestamp:'
-            parameters = {"security": getattr(self._security_, 'UID', self._security_), "timestamp": getattr(self._timestamp_, 'UID', self._timestamp_)}
-        return super()._pull_(condition=condition, parameters=parameters, overload=overload)
-
-    def save(self, by: str = "Autosave", key: str | Sequence[str] | None = None) -> None:
-        super().save(by=by, key=key or ["Security", "Timestamp"])
 
     @property
     @overridefield

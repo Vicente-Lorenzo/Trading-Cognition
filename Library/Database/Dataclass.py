@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Type, Any
 from dataclasses import dataclass, field, InitVar
-from enum import Enum
 
 from Library.Utility.Typing import MISSING
 
@@ -59,7 +59,7 @@ class DatametaAPI:
     def __repr__(self) -> str:
         return repr(self._name_ if self._name_ else self._cls_.__name__)
 
-@dataclass(slots=True)
+@dataclass
 class DataclassAPI:
 
     UID: Any = field(default=MISSING, kw_only=True)
