@@ -5,7 +5,7 @@ from Library.Universe.Category import CategoryAPI
 from Library.Universe.Timeframe import TimeframeAPI
 from Library.Universe.Provider import Provider, Platform, ProviderAPI
 
-def populate_universe(db):
+def populate(db):
     by = "Population"
     categories = [
         ("Forex (Major)", "Forex", "Major", "Currency"),
