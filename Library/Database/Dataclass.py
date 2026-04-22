@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 from enum import Enum
 from typing import Type, Any
 from dataclasses import dataclass, field, InitVar
@@ -78,9 +79,11 @@ class DataclassAPI:
         attrs = self.__class__.__dict__
         if include_fields:
             for f_name, f in attrs.get("__dataclass_fields__", {}).items():
-                if include_initvar_fields and isinstance(f.type, InitVar):
+                if getattr(f, "_field_type", None) == getattr(dataclasses, "_FIELD_CLASSVAR", None):
+                    continue
+                if include_initvar_fields and getattr(f, "_field_type", None) == getattr(dataclasses, "_FIELD_INITVAR", None):
                     yield f_name, self.parse(f_name)
-                elif not isinstance(f.type, InitVar) and (include_hidden_fields or f.repr):
+                elif getattr(f, "_field_type", None) != getattr(dataclasses, "_FIELD_INITVAR", None) and (include_hidden_fields or f.repr):
                     yield f_name, self.parse(f_name)
         if include_override_fields or include_properties:
             for cls in reversed(type(self).mro()):
