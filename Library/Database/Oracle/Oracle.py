@@ -168,7 +168,8 @@ class OracleDatabaseAPI(DatabaseAPI):
             values.append(f"SELECT '{name}' AS column_name, '{datatype}' AS data_type, {is_pk} AS is_pk, {is_fk} AS is_fk FROM dual")
         return "\nUNION ALL\n".join(values)
 
-    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = ()) -> str:
+    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = (), returning: Sequence[str] = ()) -> str:
+        if returning: raise NotImplementedError("Oracle MERGE does not support RETURNING via this driver path")
         ql, qr = self._quote_
         n = QueryAPI.Named
         source_cols = ", ".join(f"{n}{c}{n} AS {ql}{c}{qr}" for c in columns)

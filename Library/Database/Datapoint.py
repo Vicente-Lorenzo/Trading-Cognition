@@ -6,6 +6,8 @@ from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
 from Library.Database.Dataclass import DataclassAPI
+from Library.Database.Database import IdentityKey, PrimaryKey, ForeignKey
+from Library.Database.Query import QueryAPI
 from Library.Utility.Typing import MISSING
 
 if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
@@ -30,9 +32,9 @@ class DatapointAPI(DataclassAPI):
 
     _db_: DatabaseAPI | None = field(default=None, init=False, repr=False)
     _migrate_: bool = field(default=False, init=False, repr=False)
-    _save_: bool = field(default=False, init=False, repr=False)
-    _load_: bool = field(default=False, init=False, repr=False)
-    _overload_: bool = field(default=False, init=False, repr=False)
+    _autosave_: bool = field(default=False, init=False, repr=False)
+    _autoload_: bool = field(default=False, init=False, repr=False)
+    _autooverload_: bool = field(default=False, init=False, repr=False)
 
     @property
     def Key(self) -> dict:
@@ -60,46 +62,76 @@ class DatapointAPI(DataclassAPI):
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool) -> None:
-        self._db_, self._migrate_, self._save_, self._load_, self._overload_ = db, migrate, autosave, autoload, autooverload
+        self._db_, self._migrate_, self._autosave_, self._autoload_, self._autooverload_ = db, migrate, autosave, autoload, autooverload
         if self._db_ is not None:
             if self._migrate_: self._db_.migrate(schema=self.Schema, table=self.Table, structure=self.Structure)
-            if self._overload_: self.overload()
-            elif self._load_: self.load()
+            if self._autooverload_: self.overload()
+            elif self._autoload_: self.load()
 
     def __setattr__(self, name: str, value: Any) -> None:
         super().__setattr__(name, value)
-        if getattr(self, "_save_", False) and name and name[0].isupper():
+        if getattr(self, "_autosave_", False) and name and name[0].isupper():
             try: self.save(by="Autosave")
             except Exception: pass
+
+    def primary_keys(self) -> list[str]:
+        return [n for n, d in self.Structure.items() if isinstance(d, PrimaryKey) or (isinstance(d, (IdentityKey, ForeignKey)) and getattr(d, "primary", False))]
+
+    def foreign_keys(self) -> list[str]:
+        return [n for n, d in self.Structure.items() if isinstance(d, ForeignKey)]
+
+    def identity_keys(self) -> list[str]:
+        return [n for n, d in self.Structure.items() if isinstance(d, IdentityKey) and not getattr(d, "primary", False)]
+
+    def natural_keys(self) -> list[str]:
+        return self.primary_keys()
+
+    def identifier(self) -> dict[str, Any]:
+        data_dict = self.dict(include_fields=True, include_initvar_fields=False, include_override_fields=True, include_properties=False)
+        id_keys = self.identity_keys()
+        if id_keys and all(data_dict.get(k) not in (None, MISSING) for k in id_keys):
+            return {k: data_dict[k] for k in id_keys}
+        nat_keys = self.natural_keys()
+        if nat_keys and all(data_dict.get(k) not in (None, MISSING) for k in nat_keys):
+            return {k: data_dict[k] for k in nat_keys}
+        return {}
 
     def _push_(self, by: str) -> None:
         if self._db_ is None: return
         now = datetime.now()
-        save_state = getattr(self, "_save_", False)
+        save_state = self._autosave_
         try:
-            self._save_ = False
+            self._autosave_ = False
             if not self.CreatedBy: self.CreatedBy, self.CreatedAt = by, now
             self.UpdatedBy, self.UpdatedAt = by, now
+            natural_key = self.natural_keys()
+            identity_cols = self.identity_keys()
             data = {k: v for k, v in self.dict(include_fields=True, include_initvar_fields=False, include_properties=False, include_override_fields=True).items() if v is not None and v is not MISSING and k[0].isupper()}
-            keys = self.Key
-            key_names = list(keys.keys())
-            from Library.Database.Database import IdentityKey
-            is_identity = any(isinstance(v, IdentityKey) for v in keys.values())
-            has_keys = all(data.get(k) is not None for k in key_names)
-            if is_identity and has_keys:
-                condition = " AND ".join([f'"{k}" = :{k}:' for k in key_names])
-                update_data = {k: v for k, v in data.items() if k not in key_names and k not in ["CreatedAt", "CreatedBy"]}
+            exclude = ["CreatedAt", "CreatedBy"]
+            if natural_key and all(data.get(k) is not None for k in natural_key):
+                insert_data = {k: v for k, v in data.items() if k not in identity_cols}
+                result = self._db_.upsert(
+                    schema=self.Schema, table=self.Table, data=insert_data, key=natural_key,
+                    exclude=exclude,
+                    returning=identity_cols if identity_cols else None
+                )
+                if identity_cols and hasattr(result, "is_empty") and not result.is_empty():
+                    row = result.row(0, named=True)
+                    for col in identity_cols:
+                        if row.get(col) is not None: setattr(self, col, row[col])
+            elif identity_cols and all(data.get(k) is not None for k in identity_cols):
+                update_data = {k: v for k, v in data.items() if k not in identity_cols and k not in exclude}
                 if update_data:
-                    from Library.Database.Query import QueryAPI
                     sql = f"UPDATE {self._db_._target_(self.Schema, self.Table)} SET "
                     sql += ", ".join([f'"{k}" = :{k}:' for k in update_data.keys()])
-                    sql += f" WHERE {condition}"
-                    params = {**update_data, **{k: data[k] for k in key_names}}
+                    sql += " WHERE " + " AND ".join([f'"{k}" = :{k}:' for k in identity_cols])
+                    params = {**update_data, **{k: data[k] for k in identity_cols}}
                     self._db_.execute(QueryAPI(sql), [params])
             else:
-                self._db_.upsert(schema=self.Schema, table=self.Table, data=data, key=key_names, exclude=["CreatedAt", "CreatedBy"])
+                fallback_key = identity_cols or natural_key or list(self.Structure.keys())[:1]
+                self._db_.upsert(schema=self.Schema, table=self.Table, data=data, key=fallback_key, exclude=exclude)
         finally:
-            self._save_ = save_state
+            self._autosave_ = save_state
 
     def save(self, by: str = "Autosave") -> None:
         self._push_(by=by)
@@ -109,21 +141,20 @@ class DatapointAPI(DataclassAPI):
         df = self._db_.select(schema=self.Schema, table=self.Table, condition=condition, parameters=parameters, limit=1, legacy=False)
         if df.is_empty(): return None
         row = df.row(0, named=True)
-        save_state, self._save_ = self._save_, False
+        save_state, self._autosave_ = self._autosave_, False
         try:
             for k, v in row.items():
                 if hasattr(self, k) and v is not None:
                     if overload or getattr(self, k) is None or getattr(self, k) is MISSING:
                         setattr(self, k, v)
-        finally: self._save_ = save_state
+        finally: self._autosave_ = save_state
         return row
 
     def _pull_(self, overload: bool) -> dict | None:
         if self._db_ is None: return None
-        keys, data_dict = self.Key, self.dict(include_fields=True, include_initvar_fields=False, include_override_fields=True, include_properties=False)
-        params = {k: data_dict.get(k) for k in keys}
-        if any(v is None or v is MISSING for v in params.values()): return None
-        return self._fetch_(condition=" AND ".join([f'"{k}" = :{k}:' for k in keys]), parameters=params, overload=overload)
+        ident = self.identifier()
+        if not ident: return None
+        return self._fetch_(condition=" AND ".join([f'"{k}" = :{k}:' for k in ident.keys()]), parameters=ident, overload=overload)
 
     def overload(self) -> dict | None:
         return self._pull_(overload=True)

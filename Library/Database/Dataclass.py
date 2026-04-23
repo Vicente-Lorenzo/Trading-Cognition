@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from enum import Enum
-from typing import Type, Any
+from typing import Type, Any, Self
 from dataclasses import dataclass, field, InitVar
 
 from Library.Utility.Typing import MISSING
@@ -72,11 +72,36 @@ class DataclassAPI:
         super(DataclassAPI, cls).__init_subclass__(**kwargs)
         cls.ID = DatametaAPI(cls)
 
-    def parse(self, name):
+    def _parse_(self, name):
         f = getattr(self, name)
         if isinstance(f, Enum): return f.name
         if isinstance(f, DataclassAPI) and (uid := f.UID) is not MISSING: return uid
         return f
+
+    @classmethod
+    def initvars(cls) -> set[str]:
+        return {name for name, f in cls.__dataclass_fields__.items()
+                if f.init and getattr(f, "_field_type", None) != getattr(dataclasses, "_FIELD_CLASSVAR", None)}
+
+    @classmethod
+    def fields(cls) -> set[str]:
+        return {name for name, f in cls.__dataclass_fields__.items()
+                if getattr(f, "_field_type", None) != getattr(dataclasses, "_FIELD_CLASSVAR", None)}
+
+    @classmethod
+    def parse(cls, data: tuple | list | dict, **overrides) -> Self:
+        if isinstance(data, dict):
+            valid = cls.initvars()
+            kwargs = {k: v for k, v in data.items() if k in valid}
+            kwargs.update(overrides)
+            return cls(**kwargs)
+        return cls(*data, **overrides)
+
+    def update(self, **kwargs) -> Self:
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+        return self
 
     def data(self, include_fields, include_initvar_fields, include_hidden_fields, include_override_fields, include_properties):
         attrs = self.__class__.__dict__
@@ -85,9 +110,9 @@ class DataclassAPI:
                 if getattr(f, "_field_type", None) == getattr(dataclasses, "_FIELD_CLASSVAR", None):
                     continue
                 if include_initvar_fields and getattr(f, "_field_type", None) == getattr(dataclasses, "_FIELD_INITVAR", None):
-                    yield f_name, self.parse(f_name)
+                    yield f_name, self._parse_(f_name)
                 elif getattr(f, "_field_type", None) != getattr(dataclasses, "_FIELD_INITVAR", None) and (include_hidden_fields or f.repr):
-                    yield f_name, self.parse(f_name)
+                    yield f_name, self._parse_(f_name)
         if include_override_fields or include_properties:
             for cls in reversed(type(self).mro()):
                 if cls is object:
@@ -96,9 +121,9 @@ class DataclassAPI:
                     if isinstance(attr, property):
                         is_field = getattr(attr.fget, "_overridefield_", False)
                         if include_override_fields and is_field:
-                            yield attr_name, self.parse(attr_name)
+                            yield attr_name, self._parse_(attr_name)
                         if include_properties and not is_field:
-                            yield attr_name, self.parse(attr_name)
+                            yield attr_name, self._parse_(attr_name)
 
     def tuple(self, include_fields=True, include_initvar_fields=False, include_hidden_fields=False, include_override_fields=True, include_properties=False):
         return tuple([v for _, v in self.data(

@@ -156,7 +156,7 @@ class MicrosoftDatabaseAPI(DatabaseAPI):
         import re
         return re.sub(r"(?i)^SELECT\s+", f"SELECT TOP {limit} ", sql.strip())
 
-    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = ()) -> str:
+    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = (), returning: Sequence[str] = ()) -> str:
         ql, qr = self._quote_
         n = QueryAPI.Named
         source_cols = self._quoted_(*columns)
@@ -167,5 +167,8 @@ class MicrosoftDatabaseAPI(DatabaseAPI):
         if updates:
             sql += f" WHEN MATCHED THEN UPDATE SET {updates}"
         insert_vals = ", ".join(f"source.{ql}{c}{qr}" for c in columns)
-        sql += f" WHEN NOT MATCHED THEN INSERT ({source_cols}) VALUES ({insert_vals});"
+        sql += f" WHEN NOT MATCHED THEN INSERT ({source_cols}) VALUES ({insert_vals})"
+        if returning:
+            sql += " OUTPUT " + ", ".join(f"inserted.{ql}{r}{qr}" for r in returning)
+        sql += ";"
         return sql
