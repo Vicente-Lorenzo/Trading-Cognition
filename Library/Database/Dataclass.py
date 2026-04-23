@@ -11,6 +11,9 @@ def overridefield(func):
     func._overridefield_ = True
     return func
 
+def coerce(value: Any) -> Any:
+    return MISSING if isinstance(value, property) else value
+
 class DatametaAPI:
 
     def __init__(self, cls: Type, name: str | None = None):

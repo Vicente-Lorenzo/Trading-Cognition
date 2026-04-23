@@ -138,7 +138,7 @@ class DatabaseAPI(ServiceAPI, ABC):
     def _limit_(self, sql: str, limit: int) -> str: raise NotImplementedError
 
     @abstractmethod
-    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = ()) -> str: raise NotImplementedError
+    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = (), returning: Sequence[str] = ()) -> str: raise NotImplementedError
 
     @abstractmethod
     def _driver_(self, admin: bool) -> Any: raise NotImplementedError
@@ -1342,7 +1342,8 @@ class DatabaseAPI(ServiceAPI, ABC):
                table: str | Sequence | None | Missing = MISSING,
                data: Any = None,
                key: str | Sequence[str] | None = None,
-               exclude: Sequence[str] | None = None) -> Self:
+               exclude: Sequence[str] | None = None,
+               returning: str | Sequence[str] | None = None) -> Self | pd.DataFrame | pl.DataFrame:
         """
         Upserts (inserts or updates) data in a table.
         :param database: Target database.
@@ -1351,7 +1352,8 @@ class DatabaseAPI(ServiceAPI, ABC):
         :param data: The data to upsert.
         :param key: The primary key or constraint for conflict resolution.
         :param exclude: Columns to exclude from the update on conflict.
-        :return: Self reference.
+        :param returning: Columns to return from the upserted rows (e.g. auto-generated UID). When set, returns a DataFrame instead of self.
+        :return: Self reference, or a DataFrame of returned columns when ``returning`` is set.
         """
         if not key:
             if self._STRUCTURE_:
@@ -1362,12 +1364,15 @@ class DatabaseAPI(ServiceAPI, ABC):
         schema = schema if schema is not MISSING else self._schema_
         table = table if table is not MISSING else self._table_
         if isinstance(database, (list, tuple)):
+            if returning: raise ValueError("returning is not supported with multiple databases")
             for d in database: self.upsert(database=d, schema=schema, table=table, data=data, key=key, exclude=exclude)
             return self
         if isinstance(schema, (list, tuple)):
+            if returning: raise ValueError("returning is not supported with multiple schemas")
             for s in schema: self.upsert(database=database, schema=s, table=table, data=data, key=key, exclude=exclude)
             return self
         if isinstance(table, (list, tuple)):
+            if returning: raise ValueError("returning is not supported with multiple tables")
             for t in table: self.upsert(database=database, schema=schema, table=t, data=data, key=key, exclude=exclude)
             return self
         if not database or not schema or not table: raise ValueError("Database, Schema and Table must be provided to upsert rows")
@@ -1376,9 +1381,16 @@ class DatabaseAPI(ServiceAPI, ABC):
         if not columns: raise ValueError("Dictionary or DataFrame structure required for upserts to identify columns")
         target = self._target_(schema, table)
         keys = [key] if isinstance(key, str) else list(key)
-        sql = self._upsert_(target, columns, keys, exclude or ())
-        self.execute(QueryAPI(sql), records, database=database, schema=schema, table=table, admin=False)
+        returning_cols = [returning] if isinstance(returning, str) else (list(returning) if returning else ())
+        sql = self._upsert_(target, columns, keys, exclude or (), returning_cols)
+        if returning_cols and len(records) == 1:
+            db = self.executeone(QueryAPI(sql), database=database, schema=schema, table=table, admin=False, **records[0])
+        elif returning_cols:
+            raise NotImplementedError("returning with batch upsert (multiple rows) is not yet supported")
+        else:
+            db = self.execute(QueryAPI(sql), records, database=database, schema=schema, table=table, admin=False)
         self._log_.alert(lambda: f"Upsert Operation: Processed {len(records)} rows in {table} Table")
+        if returning_cols: return db.fetchall()
         return self
 
     def remove(self, *,

@@ -155,7 +155,7 @@ class PostgresDatabaseAPI(DatabaseAPI):
     def _limit_(self, sql: str, limit: int) -> str:
         return f"{sql} LIMIT {limit}"
 
-    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = ()) -> str:
+    def _upsert_(self, target: str, columns: Sequence[str], keys: Sequence[str], exclude: Sequence[str] = (), returning: Sequence[str] = ()) -> str:
         ql, qr = self._quote_
         n = QueryAPI.Named
         cols_str = self._quoted_(*columns)
@@ -167,4 +167,6 @@ class PostgresDatabaseAPI(DatabaseAPI):
             sql += f" DO UPDATE SET {updates}"
         else:
             sql += " DO NOTHING"
+        if returning:
+            sql += f" RETURNING {self._quoted_(*returning)}"
         return sql
