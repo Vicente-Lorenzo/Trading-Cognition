@@ -5,6 +5,12 @@ from Library.Portfolio.Account import (
     Environment,
     AccountAPI
 )
+from Library.Portfolio.Order import (
+    OrderType,
+    OrderStatus,
+    TimeInForce,
+    OrderAPI
+)
 from Library.Portfolio.Position import (
     PositionType,
     TradeType,
@@ -19,6 +25,10 @@ __all__ = [
     "MarginMode",
     "Environment",
     "AccountAPI",
+    "OrderType",
+    "OrderStatus",
+    "TimeInForce",
+    "OrderAPI",
     "PositionType",
     "TradeType",
     "PositionAPI",
