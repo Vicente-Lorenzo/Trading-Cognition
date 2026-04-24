@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from Library.Universe.Universe import UniverseAPI
 import re
-from typing import ClassVar, Sequence, TYPE_CHECKING
+from typing import ClassVar, TYPE_CHECKING
 from dataclasses import dataclass
 
 from Library.Database.Dataframe import pl
-from Library.Database import PrimaryKey
+from Library.Database.Database import PrimaryKey
+from Library.Universe.Universe import UniverseAPI
+
 if TYPE_CHECKING: from Library.Database import DatabaseAPI
 
 _UNIT_MAP_ = {"S": "Second", "M": "Minute", "H": "Hour", "D": "Day", "W": "Week", "MN": "Month", "Y": "Year"}
@@ -15,7 +16,7 @@ _NAME_TO_UNIT_ = {v: k for k, v in _UNIT_MAP_.items()}
 _UID_PATTERN_ = re.compile(r"^([A-Z]+)(\d*)$")
 _ALIAS_UID_PATTERN_ = re.compile(r"^(\d*)([A-Z]+)(\d*)$")
 
-@dataclass(kw_only=True)
+@dataclass
 class TimeframeAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Timeframe"
@@ -25,14 +26,14 @@ class TimeframeAPI(UniverseAPI):
     Unit: str | None = None
     Value: int | None = None
 
-    @classmethod
-    def Structure(cls) -> dict:
+    @property
+    def Structure(self) -> dict:
         return {
-            cls.ID.UID: PrimaryKey(pl.String),
-            cls.ID.Name: pl.String(),
-            cls.ID.Unit: pl.String(),
-            cls.ID.Value: pl.Int32(),
-            **UniverseAPI.Structure()
+            self.ID.UID: PrimaryKey(pl.String),
+            self.ID.Name: pl.String(),
+            self.ID.Unit: pl.String(),
+            self.ID.Value: pl.Int32(),
+            **super().Structure
         }
 
     @staticmethod
@@ -60,11 +61,14 @@ class TimeframeAPI(UniverseAPI):
             return f"{unit}{v}"
         return uid
 
-    def __post_init__(self, db: DatabaseAPI | None) -> None:
+    def __post_init__(self,
+                      db: DatabaseAPI | None,
+                      migrate: bool,
+                      autosave: bool,
+                      autoload: bool,
+                      autooverload: bool) -> None:
         if self.UID: self.UID = self.normalize(self.UID)
-        self._db_ = self._connect_(db)
-        self._db_.migrate(schema=UniverseAPI.Schema, table=self.Table, structure=self.Structure())
-        self.pull()
+        super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
         if not self.Unit: self._infer_()
 
     def _infer_(self) -> None:
@@ -73,44 +77,28 @@ class TimeframeAPI(UniverseAPI):
         if not match: return
         unit, suffix = match.groups()
         v = int(suffix or 1)
-        self.Unit = unit
-        self.Value = v
+        self.Unit, self.Value = unit, v
         name = _UNIT_MAP_.get(unit, "Minute")
         self.Name = name if v == 1 else f"{name}{v}"
 
-    def _apply_(self, row: dict) -> None:
-        if not self.UID: self.UID = row.get("UID")
-        if self.Name is None: self.Name = row.get("Name")
-        if self.Unit is None: self.Unit = row.get("Unit")
-        if self.Value is None: self.Value = row.get("Value")
-
-    def pull(self, condition: str | None = None, parameters: dict | None = None) -> None:
-        if condition:
-            row = super().pull(condition=condition, parameters=parameters)
-            if row: self._apply_(row)
-            return
-        if not self.UID: return
-        row = super().pull(
-            condition='"UID" = :value: OR "Name" = :value:',
-            parameters={"value": self.UID}
-        )
-        if not row:
+    def _pull_(self, overload: bool) -> dict | None:
+        condition, parameters = None, None
+        if not self.UID and self.Name:
+            condition, parameters = '"Name" = :value:', {"value": self.Name}
+        row = super()._pull_(overload=overload) if condition is None else self._fetch_(condition=condition, parameters=parameters, overload=overload)
+        if not row and not condition:
             if self.Unit is None and not _UID_PATTERN_.match(self.UID): raise ValueError(f"Timeframe '{self.UID}' not found in database and lacks correct format for creation.")
-            return
-        self._apply_(row)
-
-    def push(self, by: str, key: str | Sequence[str] | None = None) -> None:
-        super().push(by=by, key=key or self.ID.UID)
-
-    @property
-    def Minutes(self) -> float | None:
-        if self.Value is None or self.Unit is None: return None
-        return self.Value * _MINUTES_MAP_.get(self.Unit, 1)
+        return row
 
     @property
     def Hours(self) -> float | None:
         minutes = self.Minutes
         return minutes / 60 if minutes is not None else None
+
+    @property
+    def Minutes(self) -> float | None:
+        if self.Value is None or self.Unit is None: return None
+        return self.Value * _MINUTES_MAP_.get(self.Unit, 1)
 
     @property
     def Seconds(self) -> float | None:
