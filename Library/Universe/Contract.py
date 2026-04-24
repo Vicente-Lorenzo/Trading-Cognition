@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from Library.Universe.Universe import UniverseAPI
-from typing import ClassVar, Sequence, TYPE_CHECKING
-from dataclasses import dataclass
+from typing import ClassVar, TYPE_CHECKING
+from dataclasses import dataclass, field, InitVar
 from datetime import datetime
 
 from Library.Database.Dataframe import pl
+from Library.Database.Dataclass import overridefield, coerce
 from Library.Database.Enumeration import Enumeration, as_enum
-from Library.Database import PrimaryKey, ForeignKey
+from Library.Database import IdentityKey, PrimaryKey, ForeignKey
+from Library.Universe.Universe import UniverseAPI
 from Library.Universe.Ticker import TickerAPI, Contract
 from Library.Universe.Provider import ProviderAPI
-from Library.Utility.DateTime import Day
+from Library.Utility.DateTime import Weekday
+from Library.Utility.Typing import MISSING
+
 if TYPE_CHECKING: from Library.Database import DatabaseAPI
 
 class SpreadType(Enumeration):
@@ -42,14 +45,16 @@ class SwapMode(Enumeration):
     Pips = 0
     Percentage = 1
 
-@dataclass(kw_only=True)
+@dataclass
 class ContractAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Contract"
 
-    TickerUID: str
-    ProviderUID: str
-    UID: Contract | str | None = None
+    UID: int | None = None
+    Type: Contract | str | None = None
+
+    Ticker: InitVar[str | TickerAPI | None] = field(default=MISSING)
+    Provider: InitVar[str | ProviderAPI | None] = field(default=MISSING)
 
     Digits: int | None = None
     PointSize: float | None = None
@@ -63,83 +68,102 @@ class ContractAPI(UniverseAPI):
     SwapLong: float | None = None
     SwapShort: float | None = None
     SwapMode: SwapMode | str | None = None
-    SwapExtraDay: Day | str | None = None
+    SwapExtraDay: Weekday | str | None = None
     SwapSummerTime: int = 22
     SwapWinterTime: int = 21
     SwapPeriod: int = 24
     Expiry: datetime | None = None
 
-    @classmethod
-    def Structure(cls) -> dict:
+    _ticker_: TickerAPI | None = field(default=None, init=False, repr=False)
+    _provider_: ProviderAPI | None = field(default=None, init=False, repr=False)
+
+    @property
+    def Structure(self) -> dict:
         return {
-            cls.ID.TickerUID: ForeignKey(pl.String, reference=f'"{UniverseAPI.Schema}"."{TickerAPI.Table}"("{TickerAPI.ID.UID}")', primary=True),
-            cls.ID.ProviderUID: ForeignKey(pl.String, reference=f'"{UniverseAPI.Schema}"."{ProviderAPI.Table}"("{ProviderAPI.ID.UID}")', primary=True),
-            cls.ID.UID: PrimaryKey(pl.Enum([i.name for i in Contract])),
-            cls.ID.Digits: pl.Int32(),
-            cls.ID.PointSize: pl.Float64(),
-            cls.ID.PipSize: pl.Float64(),
-            cls.ID.LotSize: pl.Int32(),
-            cls.ID.VolumeMin: pl.Float64(),
-            cls.ID.VolumeMax: pl.Float64(),
-            cls.ID.VolumeStep: pl.Float64(),
-            cls.ID.Commission: pl.Float64(),
-            cls.ID.CommissionMode: pl.Enum([c.name for c in CommissionMode]),
-            cls.ID.SwapLong: pl.Float64(),
-            cls.ID.SwapShort: pl.Float64(),
-            cls.ID.SwapMode: pl.Enum([s.name for s in SwapMode]),
-            cls.ID.SwapExtraDay: pl.Enum([d.name for d in Day]),
-            cls.ID.SwapSummerTime: pl.Int32(),
-            cls.ID.SwapWinterTime: pl.Int32(),
-            cls.ID.SwapPeriod: pl.Int32(),
-            cls.ID.Expiry: pl.Datetime(),
-            **UniverseAPI.Structure()
+            self.ID.UID: IdentityKey(pl.Int64),
+            self.ID.Ticker: ForeignKey(pl.String, reference=f'"{UniverseAPI.Schema}"."{TickerAPI.Table}"("{TickerAPI.ID.UID}")', primary=True),
+            self.ID.Provider: ForeignKey(pl.String, reference=f'"{UniverseAPI.Schema}"."{ProviderAPI.Table}"("{ProviderAPI.ID.UID}")', primary=True),
+            self.ID.Type: PrimaryKey(pl.Enum([i.name for i in Contract])),
+            self.ID.Digits: pl.Int32(),
+            self.ID.PointSize: pl.Float64(),
+            self.ID.PipSize: pl.Float64(),
+            self.ID.LotSize: pl.Int32(),
+            self.ID.VolumeMin: pl.Float64(),
+            self.ID.VolumeMax: pl.Float64(),
+            self.ID.VolumeStep: pl.Float64(),
+            self.ID.Commission: pl.Float64(),
+            self.ID.CommissionMode: pl.Enum([c.name for c in CommissionMode]),
+            self.ID.SwapLong: pl.Float64(),
+            self.ID.SwapShort: pl.Float64(),
+            self.ID.SwapMode: pl.Enum([s.name for s in SwapMode]),
+            self.ID.SwapExtraDay: pl.Enum([d.name for d in Weekday]),
+            self.ID.SwapSummerTime: pl.Int32(),
+            self.ID.SwapWinterTime: pl.Int32(),
+            self.ID.SwapPeriod: pl.Int32(),
+            self.ID.Expiry: pl.Datetime(),
+            **super().Structure
         }
 
-    def __post_init__(self, db: DatabaseAPI | None) -> None:
-        self.TickerUID = TickerAPI.normalize(self.TickerUID)
-        self.ProviderUID = ProviderAPI.normalize(self.ProviderUID)
-        self.UID = as_enum(Contract, self.UID)
-        if self.UID is None: raise ValueError(f"Contract '{self.TickerUID}@{self.ProviderUID}' requires a valid UID (Contract)")
+    def __post_init__(self,
+                      db: DatabaseAPI | None,
+                      migrate: bool,
+                      autosave: bool,
+                      autoload: bool,
+                      autooverload: bool,
+                      ticker: str | TickerAPI | None,
+                      provider: str | ProviderAPI | None) -> None:
+        ticker = coerce(ticker)
+        provider = coerce(provider)
+        if isinstance(ticker, TickerAPI): self._ticker_ = ticker
+        elif ticker is not MISSING and ticker is not None:
+            self._ticker_ = TickerAPI(UID=TickerAPI.normalize(ticker), db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
+        if isinstance(provider, ProviderAPI): self._provider_ = provider
+        elif provider is not MISSING and provider is not None:
+            self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(provider), db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
+        if self.Type is None and self._ticker_ is not None and self._ticker_.UID:
+            self.Type = TickerAPI.detect(self._ticker_.UID)
+        self.Type = as_enum(Contract, self.Type)
         self.CommissionMode = as_enum(CommissionMode, self.CommissionMode)
         self.SwapMode = as_enum(SwapMode, self.SwapMode)
-        self.SwapExtraDay = as_enum(Day, self.SwapExtraDay)
-        self._db_ = self._connect_(db)
-        self._db_.migrate(schema=UniverseAPI.Schema, table=self.Table, structure=self.Structure())
-        self.pull()
+        self.SwapExtraDay = as_enum(Weekday, self.SwapExtraDay)
+        super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _apply_(self, row: dict) -> None:
-        if self.Digits is None: self.Digits = row.get("Digits")
-        if self.PointSize is None: self.PointSize = row.get("PointSize")
-        if self.PipSize is None: self.PipSize = row.get("PipSize")
-        if self.LotSize is None: self.LotSize = row.get("LotSize")
-        if self.VolumeMin is None: self.VolumeMin = row.get("VolumeMin")
-        if self.VolumeMax is None: self.VolumeMax = row.get("VolumeMax")
-        if self.VolumeStep is None: self.VolumeStep = row.get("VolumeStep")
-        if self.Commission is None: self.Commission = row.get("Commission")
-        if self.CommissionMode is None: self.CommissionMode = as_enum(CommissionMode, row.get("CommissionMode"))
-        if self.SwapLong is None: self.SwapLong = row.get("SwapLong")
-        if self.SwapShort is None: self.SwapShort = row.get("SwapShort")
-        if self.SwapMode is None: self.SwapMode = as_enum(SwapMode, row.get("SwapMode"))
-        if self.SwapExtraDay is None: self.SwapExtraDay = as_enum(Day, row.get("SwapExtraDay"))
-        if self.SwapSummerTime is None: self.SwapSummerTime = row.get("SwapSummerTime")
-        if self.SwapWinterTime is None: self.SwapWinterTime = row.get("SwapWinterTime")
-        if self.SwapPeriod is None: self.SwapPeriod = row.get("SwapPeriod")
-        if self.Expiry is None: self.Expiry = row.get("Expiry")
+    def _pull_(self, overload: bool) -> dict | None:
+        row = super()._pull_(overload=overload)
+        if not row and self.UID is None and self._ticker_ and self._provider_ and self.Type is not None:
+            tval = self.Type.name if isinstance(self.Type, Contract) else self.Type
+            row = self._fetch_(
+                condition='"Ticker" = :ticker: AND "Provider" = :provider: AND "Type" = :type:',
+                parameters={"ticker": self._ticker_.UID, "provider": self._provider_.UID, "type": tval},
+                overload=overload
+            )
+        if row:
+            self.Type = as_enum(Contract, self.Type)
+            self.CommissionMode = as_enum(CommissionMode, self.CommissionMode)
+            self.SwapMode = as_enum(SwapMode, self.SwapMode)
+            self.SwapExtraDay = as_enum(Weekday, self.SwapExtraDay)
+        return row
 
-    def pull(self, condition: str | None = None, parameters: dict | None = None) -> None:
-        if condition:
-            row = super().pull(condition=condition, parameters=parameters)
-            if row: self._apply_(row)
-            return
-        row = super().pull(
-            condition='"TickerUID" = :ticker: AND "ProviderUID" = :provider: AND "UID" = :uid:',
-            parameters={"ticker": self.TickerUID, "provider": self.ProviderUID, "uid": self.UID.name}
-        )
-        if not row: return
-        self._apply_(row)
+    def save(self, by: str = "Autosave") -> None:
+        if self._ticker_: self._ticker_.save(by=by)
+        if self._provider_: self._provider_.save(by=by)
+        super().save(by=by)
+        if self.UID is None: self.load()
 
-    def push(self, by: str, key: str | Sequence[str] | None = None) -> None:
-        super().push(by=by, key=key or [self.ID.TickerUID, self.ID.ProviderUID, self.ID.UID])
+    @property
+    @overridefield
+    def Ticker(self) -> TickerAPI | None:
+        return self._ticker_
+    @Ticker.setter
+    def Ticker(self, val: str | TickerAPI | None) -> None:
+        if isinstance(val, TickerAPI): self._ticker_ = val
+        elif val is not None: self._ticker_ = TickerAPI(UID=TickerAPI.normalize(val), db=self._db_, autoload=True)
 
-    def __str__(self) -> str:
-        return f"{self.TickerUID}@{self.ProviderUID} ({self.UID.name if isinstance(self.UID, Contract) else self.UID})"
+    @property
+    @overridefield
+    def Provider(self) -> ProviderAPI | None:
+        return self._provider_
+    @Provider.setter
+    def Provider(self, val: str | ProviderAPI | None) -> None:
+        if isinstance(val, ProviderAPI): self._provider_ = val
+        elif val is not None: self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(val), db=self._db_, autoload=True)
