@@ -104,9 +104,3 @@ class TimeframeAPI(UniverseAPI):
     def Seconds(self) -> float | None:
         minutes = self.Minutes
         return minutes * 60 if minutes is not None else None
-
-    def __str__(self) -> str:
-        return self.UID or ""
-
-    def __repr__(self) -> str:
-        return f"TimeframeAPI(UID={self.UID!r}, Name={self.Name!r}, Unit={self.Unit!r}, Value={self.Value!r})"
