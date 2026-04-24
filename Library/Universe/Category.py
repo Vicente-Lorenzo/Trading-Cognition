@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
 from dataclasses import dataclass
+from typing import ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey

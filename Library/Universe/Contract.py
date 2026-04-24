@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
-from datetime import datetime
 
 from Library.Database.Dataframe import pl
 from Library.Database.Dataclass import overridefield, coerce
