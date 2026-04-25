@@ -8,7 +8,6 @@ from Library.Database.Dataframe import pl
 from Library.Database.Database import IdentityKey, PrimaryKey, ForeignKey, DatabaseAPI
 from Library.Database.Datapoint import DatapointAPI
 from Library.Database.Dataclass import overridefield, coerce
-from Library.Market.Market import MarketAPI
 from Library.Market.Timestamp import TimestampAPI
 from Library.Market.Tick import TickAPI
 from Library.Market.Price import PriceAPI
@@ -20,7 +19,7 @@ from Library.Utility.Typing import MISSING
 class BarAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = MarketAPI.Schema
+    Schema: ClassVar[str] = "Market"
     Table: ClassVar[str] = "Bar"
 
     UID: int | None = field(default=None, kw_only=True)
