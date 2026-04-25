@@ -6,6 +6,7 @@ from typing import Union, ClassVar, TYPE_CHECKING
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey
 from Library.Database.Datapoint import DatapointAPI
+from Library.Universe.Universe import UniverseAPI
 
 if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
 class CategoryAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Universe"
+    Schema: ClassVar[str] = UniverseAPI.Schema
     Table: ClassVar[str] = "Category"
 
     UID: Union[str, None] = None

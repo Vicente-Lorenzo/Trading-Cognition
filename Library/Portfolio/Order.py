@@ -8,6 +8,7 @@ from dataclasses import dataclass, field, InitVar
 from Library.Database.Dataframe import pl
 from Library.Database.Database import IdentityKey, ForeignKey, DatabaseAPI
 from Library.Database.Datapoint import DatapointAPI
+from Library.Portfolio.Portfolio import PortfolioAPI
 from Library.Database.Dataclass import overridefield, coerce
 from Library.Database.Enumeration import as_enum
 from Library.Portfolio.Position import PositionAPI
@@ -46,7 +47,7 @@ class TimeInForce(Enum):
 class OrderAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Portfolio"
+    Schema: ClassVar[str] = PortfolioAPI.Schema
     Table: ClassVar[str] = "Order"
 
     UID: Union[int, None] = None

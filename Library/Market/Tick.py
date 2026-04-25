@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, InitVar
 from Library.Database.Dataframe import pl
 from Library.Database.Database import IdentityKey, PrimaryKey, ForeignKey, DatabaseAPI
 from Library.Database.Datapoint import DatapointAPI
+from Library.Market.Market import MarketAPI
 from Library.Database.Dataclass import overridefield, coerce
 from Library.Market.Timestamp import TimestampAPI
 from Library.Market.Price import PriceAPI
@@ -17,7 +18,7 @@ from Library.Utility.Typing import MISSING
 class TickAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Market"
+    Schema: ClassVar[str] = MarketAPI.Schema
     Table: ClassVar[str] = "Tick"
 
     UID: Union[int, None] = field(default=None, kw_only=True)

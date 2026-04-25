@@ -29,7 +29,7 @@ class PositionType(Enum):
 class PositionAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Portfolio"
+    Schema: ClassVar[str] = PortfolioAPI.Schema
     Table: ClassVar[str] = "Position"
 
     UID: Union[int, None] = None

@@ -6,6 +6,7 @@ from typing import Union, ClassVar, TYPE_CHECKING
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey
 from Library.Database.Datapoint import DatapointAPI
+from Library.Universe.Universe import UniverseAPI
 from Library.Database.Enumeration import Enumeration, as_enum
 
 if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
@@ -29,7 +30,7 @@ class Platform(Enumeration):
 class ProviderAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Universe"
+    Schema: ClassVar[str] = UniverseAPI.Schema
     Table: ClassVar[str] = "Provider"
 
     UID: Union[str, None] = None

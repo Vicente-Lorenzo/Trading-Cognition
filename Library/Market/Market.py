@@ -8,10 +8,10 @@ from typing import Union, ClassVar, TYPE_CHECKING
 from Library.Database.Dataframe import pl
 from Library.Database.Datapoint import DatapointAPI
 from Library.Database.Query import QueryAPI
-from Library.Market.Tick import TickAPI
-from Library.Market.Bar import BarAPI
-
-if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
+if TYPE_CHECKING: 
+    from Library.Database.Database import DatabaseAPI
+    from Library.Market.Tick import TickAPI
+    from Library.Market.Bar import BarAPI
 
 @dataclass(kw_only=True)
 class MarketAPI(DatapointAPI):
@@ -50,6 +50,7 @@ class MarketAPI(DatapointAPI):
 
     @staticmethod
     def pull_ticks(db: DatabaseAPI, security: int, start: datetime, stop: datetime) -> pl.DataFrame:
+        from Library.Market.Tick import TickAPI
         sql = '''
         SELECT * FROM "Market"."Tick"
         WHERE "Security" = :security: AND "Timestamp" BETWEEN :start: AND :stop:
@@ -60,6 +61,7 @@ class MarketAPI(DatapointAPI):
 
     @staticmethod
     def pull_bars(db: DatabaseAPI, security: int, timeframe: str, start: datetime, stop: datetime) -> pl.DataFrame:
+        from Library.Market.Bar import BarAPI
         sql = '''
         SELECT b."UID", b."Timestamp", b."Security", b."Timeframe",
                b."GapTick", b."OpenTick", b."HighTick", b."LowTick", b."CloseTick",
@@ -114,8 +116,10 @@ class MarketAPI(DatapointAPI):
 
     @staticmethod
     def push_ticks(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
+        from Library.Market.Tick import TickAPI
         db.upsert(schema=TickAPI.Schema, table=TickAPI.Table, data=data, key=["Timestamp", "Security"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
     def push_bars(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
+        from Library.Market.Bar import BarAPI
         db.upsert(schema=BarAPI.Schema, table=BarAPI.Table, data=data, key=["Timestamp", "Security", "Timeframe"], exclude=["CreatedAt", "CreatedBy"])

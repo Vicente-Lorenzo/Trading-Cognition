@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class TradeAPI(PositionAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = "Portfolio"
+    Schema: ClassVar[str] = PortfolioAPI.Schema
     Table: ClassVar[str] = "Trade"
 
     UID: Union[int, None] = None
