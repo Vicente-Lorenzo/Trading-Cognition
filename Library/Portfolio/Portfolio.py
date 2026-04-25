@@ -160,40 +160,7 @@ class PortfolioAPI(DatapointAPI):
         else: data.load()
 
     @staticmethod
-    def _from_join_row_(row: dict, cls: type) -> object:
-        from Library.Portfolio.Account import AccountAPI
-        from Library.Portfolio.Order import OrderAPI
-        from Library.Portfolio.Position import PositionAPI
-        from Library.Portfolio.Trade import TradeAPI
-        from Library.Universe.Provider import ProviderAPI
-        from Library.Universe.Security import SecurityAPI
-        from Library.Universe.Contract import ContractAPI
-
-        def _extract(prefix: str, api_cls: type):
-            if row.get(f"{prefix}_UID") is None: return None
-            sub_dict = {k.replace(f"{prefix}_", ""): v for k, v in row.items() if k.startswith(f"{prefix}_")}
-            return api_cls.parse(sub_dict)
-
-        main_dict = {k: v for k, v in row.items() if not any(k.startswith(p) for p in ("Provider_", "Security_", "Contract_", "Position_"))}
-
-        if cls is AccountAPI:
-            main_dict["Provider"] = _extract("Provider", ProviderAPI)
-        elif cls is OrderAPI:
-            main_dict["Security"] = _extract("Security", SecurityAPI)
-            main_dict["Contract"] = _extract("Contract", ContractAPI)
-            main_dict["Position"] = _extract("Position", PositionAPI)
-        elif cls is PositionAPI:
-            main_dict["Security"] = _extract("Security", SecurityAPI)
-            main_dict["Contract"] = _extract("Contract", ContractAPI)
-        elif cls is TradeAPI:
-            main_dict["Position"] = _extract("Position", PositionAPI)
-            main_dict["Security"] = _extract("Security", SecurityAPI)
-            main_dict["Contract"] = _extract("Contract", ContractAPI)
-
-        return cls.parse(main_dict)
-
-    @staticmethod
-    def pull_accounts(db: DatabaseAPI, as_dataframe: bool = True) -> pl.DataFrame | list[AccountAPI]:
+    def pull_accounts(db: DatabaseAPI) -> pl.DataFrame:
         from Library.Portfolio.Account import AccountAPI
         sql = f'''
         SELECT a.*,
@@ -202,8 +169,7 @@ class PortfolioAPI(DatapointAPI):
         LEFT JOIN "Universe"."Provider" p ON a."Provider" = p."UID"
         '''
         df = db.executeone(QueryAPI(sql), schema=AccountAPI.Schema, table=AccountAPI.Table).fetchall(legacy=False)
-        if as_dataframe: return df
-        return [PortfolioAPI._from_join_row_(row, AccountAPI) for row in df.iter_rows(named=True)]
+        return df
 
     @staticmethod
     def push_accounts(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
@@ -211,13 +177,13 @@ class PortfolioAPI(DatapointAPI):
         db.upsert(schema=AccountAPI.Schema, table=AccountAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_orders(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None, as_dataframe: bool = True) -> pl.DataFrame | list[OrderAPI]:
+    def pull_orders(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
         from Library.Portfolio.Order import OrderAPI
         sql = f'''
         SELECT o.*,
                s."UID" AS "Security_UID", s."Provider" AS "Security_Provider", s."Category" AS "Security_Category", s."Ticker" AS "Security_Ticker", s."Contract" AS "Security_Contract", s."CreatedAt" AS "Security_CreatedAt", s."CreatedBy" AS "Security_CreatedBy", s."UpdatedAt" AS "Security_UpdatedAt", s."UpdatedBy" AS "Security_UpdatedBy",
                c."UID" AS "Contract_UID", c."Ticker" AS "Contract_Ticker", c."Provider" AS "Contract_Provider", c."Type" AS "Contract_Type", c."Digits" AS "Contract_Digits", c."PointSize" AS "Contract_PointSize", c."PipSize" AS "Contract_PipSize", c."LotSize" AS "Contract_LotSize", c."VolumeMin" AS "Contract_VolumeMin", c."VolumeMax" AS "Contract_VolumeMax", c."VolumeStep" AS "Contract_VolumeStep", c."Commission" AS "Contract_Commission", c."CommissionMode" AS "Contract_CommissionMode", c."SwapLong" AS "Contract_SwapLong", c."SwapShort" AS "Contract_SwapShort", c."SwapMode" AS "Contract_SwapMode", c."SwapExtraDay" AS "Contract_SwapExtraDay", c."SwapSummerTime" AS "Contract_SwapSummerTime", c."SwapWinterTime" AS "Contract_SwapWinterTime", c."SwapPeriod" AS "Contract_SwapPeriod", c."Expiry" AS "Contract_Expiry", c."CreatedAt" AS "Contract_CreatedAt", c."CreatedBy" AS "Contract_CreatedBy", c."UpdatedAt" AS "Contract_UpdatedAt", c."UpdatedBy" AS "Contract_UpdatedBy",
-               p."UID" AS "Position_UID", p."Security" AS "Position_Security", p."PositionType" AS "Position_PositionType", p."TradeType" AS "Position_TradeType", p."Volume" AS "Position_Volume", p."Quantity" AS "Position_Quantity", p."EntryTimestamp" AS "Position_EntryTimestamp", p."EntryPrice" AS "Position_EntryPrice", p."StopLossPrice" AS "Position_StopLossPrice", p."TakeProfitPrice" AS "Position_TakeProfitPrice", p."MaxRunUpPrice" AS "Position_MaxRunUpPrice", p."MaxDrawDownPrice" AS "Position_MaxDrawDownPrice", p."ExitPrice" AS "Position_ExitPrice", p."StopLossPnL" AS "Position_StopLossPnL", p."TakeProfitPnL" AS "Position_TakeProfitPnL", p."MaxRunUpPnL" AS "Position_MaxRunUpPnL", p."MaxDrawDownPnL" AS "Position_MaxDrawDownPnL", p."GrossPnL" AS "Position_GrossPnL", p."CommissionPnL" AS "Position_CommissionPnL", p."SwapPnL" AS "Position_SwapPnL", p."NetPnL" AS "Position_NetPnL", p."UsedMargin" AS "Position_UsedMargin", p."EntryBalance" AS "Position_EntryBalance", p."MidBalance" AS "Position_MidBalance", p."CreatedAt" AS "Position_CreatedAt", p."CreatedBy" AS "Position_CreatedBy", p."UpdatedAt" AS "Position_UpdatedAt", p."UpdatedBy" AS "Position_UpdatedBy"
+               p."UID" AS "Position_UID", p."Security" AS "Position_Security", p."PositionType" AS "Position_PositionType", p."Direction" AS "Position_TradeType", p."Volume" AS "Position_Volume", p."Quantity" AS "Position_Quantity", p."EntryTimestamp" AS "Position_EntryTimestamp", p."EntryPrice" AS "Position_EntryPrice", p."StopLossPrice" AS "Position_StopLossPrice", p."TakeProfitPrice" AS "Position_TakeProfitPrice", p."MaxRunUpPrice" AS "Position_MaxRunUpPrice", p."MaxDrawDownPrice" AS "Position_MaxDrawDownPrice", p."ExitPrice" AS "Position_ExitPrice", p."StopLossPnL" AS "Position_StopLossPnL", p."TakeProfitPnL" AS "Position_TakeProfitPnL", p."MaxRunUpPnL" AS "Position_MaxRunUpPnL", p."MaxDrawDownPnL" AS "Position_MaxDrawDownPnL", p."GrossPnL" AS "Position_GrossPnL", p."CommissionPnL" AS "Position_CommissionPnL", p."SwapPnL" AS "Position_SwapPnL", p."NetPnL" AS "Position_NetPnL", p."UsedMargin" AS "Position_UsedMargin", p."EntryBalance" AS "Position_EntryBalance", p."MidBalance" AS "Position_MidBalance", p."CreatedAt" AS "Position_CreatedAt", p."CreatedBy" AS "Position_CreatedBy", p."UpdatedAt" AS "Position_UpdatedAt", p."UpdatedBy" AS "Position_UpdatedBy"
         FROM "{OrderAPI.Schema}"."{OrderAPI.Table}" o
         LEFT JOIN "Universe"."Security" s ON o."Security" = s."UID"
         LEFT JOIN "Universe"."Contract" c ON s."Contract" = c."UID"
@@ -228,8 +194,7 @@ class PortfolioAPI(DatapointAPI):
             sql += ' WHERE o."EntryTimestamp" BETWEEN :start: AND :stop:'
             params = {"start": start, "stop": stop}
         df = db.executeone(QueryAPI(sql), **params, schema=OrderAPI.Schema, table=OrderAPI.Table).fetchall(legacy=False)
-        if as_dataframe: return df
-        return [PortfolioAPI._from_join_row_(row, OrderAPI) for row in df.iter_rows(named=True)]
+        return df
 
     @staticmethod
     def push_orders(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
@@ -237,7 +202,7 @@ class PortfolioAPI(DatapointAPI):
         db.upsert(schema=OrderAPI.Schema, table=OrderAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_positions(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None, as_dataframe: bool = True) -> pl.DataFrame | list[PositionAPI]:
+    def pull_positions(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
         from Library.Portfolio.Position import PositionAPI
         sql = f'''
         SELECT pos.*,
@@ -252,8 +217,7 @@ class PortfolioAPI(DatapointAPI):
             sql += ' WHERE pos."EntryTimestamp" BETWEEN :start: AND :stop:'
             params = {"start": start, "stop": stop}
         df = db.executeone(QueryAPI(sql), **params, schema=PositionAPI.Schema, table=PositionAPI.Table).fetchall(legacy=False)
-        if as_dataframe: return df
-        return [PortfolioAPI._from_join_row_(row, PositionAPI) for row in df.iter_rows(named=True)]
+        return df
 
     @staticmethod
     def push_positions(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
@@ -261,11 +225,11 @@ class PortfolioAPI(DatapointAPI):
         db.upsert(schema=PositionAPI.Schema, table=PositionAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_trades(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None, as_dataframe: bool = True) -> pl.DataFrame | list[TradeAPI]:
+    def pull_trades(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
         from Library.Portfolio.Trade import TradeAPI
         sql = f'''
         SELECT t.*,
-               p."UID" AS "Position_UID", p."Security" AS "Position_Security", p."PositionType" AS "Position_PositionType", p."TradeType" AS "Position_TradeType", p."Volume" AS "Position_Volume", p."Quantity" AS "Position_Quantity", p."EntryTimestamp" AS "Position_EntryTimestamp", p."EntryPrice" AS "Position_EntryPrice", p."StopLossPrice" AS "Position_StopLossPrice", p."TakeProfitPrice" AS "Position_TakeProfitPrice", p."MaxRunUpPrice" AS "Position_MaxRunUpPrice", p."MaxDrawDownPrice" AS "Position_MaxDrawDownPrice", p."ExitPrice" AS "Position_ExitPrice", p."StopLossPnL" AS "Position_StopLossPnL", p."TakeProfitPnL" AS "Position_TakeProfitPnL", p."MaxRunUpPnL" AS "Position_MaxRunUpPnL", p."MaxDrawDownPnL" AS "Position_MaxDrawDownPnL", p."GrossPnL" AS "Position_GrossPnL", p."CommissionPnL" AS "Position_CommissionPnL", p."SwapPnL" AS "Position_SwapPnL", p."NetPnL" AS "Position_NetPnL", p."UsedMargin" AS "Position_UsedMargin", p."EntryBalance" AS "Position_EntryBalance", p."MidBalance" AS "Position_MidBalance", p."CreatedAt" AS "Position_CreatedAt", p."CreatedBy" AS "Position_CreatedBy", p."UpdatedAt" AS "Position_UpdatedAt", p."UpdatedBy" AS "Position_UpdatedBy",
+               p."UID" AS "Position_UID", p."Security" AS "Position_Security", p."PositionType" AS "Position_PositionType", p."Direction" AS "Position_TradeType", p."Volume" AS "Position_Volume", p."Quantity" AS "Position_Quantity", p."EntryTimestamp" AS "Position_EntryTimestamp", p."EntryPrice" AS "Position_EntryPrice", p."StopLossPrice" AS "Position_StopLossPrice", p."TakeProfitPrice" AS "Position_TakeProfitPrice", p."MaxRunUpPrice" AS "Position_MaxRunUpPrice", p."MaxDrawDownPrice" AS "Position_MaxDrawDownPrice", p."ExitPrice" AS "Position_ExitPrice", p."StopLossPnL" AS "Position_StopLossPnL", p."TakeProfitPnL" AS "Position_TakeProfitPnL", p."MaxRunUpPnL" AS "Position_MaxRunUpPnL", p."MaxDrawDownPnL" AS "Position_MaxDrawDownPnL", p."GrossPnL" AS "Position_GrossPnL", p."CommissionPnL" AS "Position_CommissionPnL", p."SwapPnL" AS "Position_SwapPnL", p."NetPnL" AS "Position_NetPnL", p."UsedMargin" AS "Position_UsedMargin", p."EntryBalance" AS "Position_EntryBalance", p."MidBalance" AS "Position_MidBalance", p."CreatedAt" AS "Position_CreatedAt", p."CreatedBy" AS "Position_CreatedBy", p."UpdatedAt" AS "Position_UpdatedAt", p."UpdatedBy" AS "Position_UpdatedBy",
                s."UID" AS "Security_UID", s."Provider" AS "Security_Provider", s."Category" AS "Security_Category", s."Ticker" AS "Security_Ticker", s."Contract" AS "Security_Contract", s."CreatedAt" AS "Security_CreatedAt", s."CreatedBy" AS "Security_CreatedBy", s."UpdatedAt" AS "Security_UpdatedAt", s."UpdatedBy" AS "Security_UpdatedBy",
                c."UID" AS "Contract_UID", c."Ticker" AS "Contract_Ticker", c."Provider" AS "Contract_Provider", c."Type" AS "Contract_Type", c."Digits" AS "Contract_Digits", c."PointSize" AS "Contract_PointSize", c."PipSize" AS "Contract_PipSize", c."LotSize" AS "Contract_LotSize", c."VolumeMin" AS "Contract_VolumeMin", c."VolumeMax" AS "Contract_VolumeMax", c."VolumeStep" AS "Contract_VolumeStep", c."Commission" AS "Contract_Commission", c."CommissionMode" AS "Contract_CommissionMode", c."SwapLong" AS "Contract_SwapLong", c."SwapShort" AS "Contract_SwapShort", c."SwapMode" AS "Contract_SwapMode", c."SwapExtraDay" AS "Contract_SwapExtraDay", c."SwapSummerTime" AS "Contract_SwapSummerTime", c."SwapWinterTime" AS "Contract_SwapWinterTime", c."SwapPeriod" AS "Contract_SwapPeriod", c."Expiry" AS "Contract_Expiry", c."CreatedAt" AS "Contract_CreatedAt", c."CreatedBy" AS "Contract_CreatedBy", c."UpdatedAt" AS "Contract_UpdatedAt", c."UpdatedBy" AS "Contract_UpdatedBy"
         FROM "{TradeAPI.Schema}"."{TradeAPI.Table}" t
@@ -278,8 +242,7 @@ class PortfolioAPI(DatapointAPI):
             sql += ' WHERE t."ExitTimestamp" BETWEEN :start: AND :stop:'
             params = {"start": start, "stop": stop}
         df = db.executeone(QueryAPI(sql), **params, schema=TradeAPI.Schema, table=TradeAPI.Table).fetchall(legacy=False)
-        if as_dataframe: return df
-        return [PortfolioAPI._from_join_row_(row, TradeAPI) for row in df.iter_rows(named=True)]
+        return df
 
     @staticmethod
     def push_trades(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
