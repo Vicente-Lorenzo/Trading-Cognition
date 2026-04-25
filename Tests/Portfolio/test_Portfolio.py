@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from Library.Portfolio.Account import AccountAPI, AccountType, MarginMode, Environment
-from Library.Portfolio.Position import PositionAPI, PositionType, TradeType
+from Library.Portfolio.Position import PositionAPI, PositionType, Direction
 from Library.Portfolio.Trade import TradeAPI
 from Library.Universe.Security import SecurityAPI
 from Library.Universe.Category import CategoryAPI
@@ -57,8 +57,8 @@ def test_portfolio_initialization(db):
     pos = PositionAPI(
         UID=1001,
         Security=sec.UID,
-        PositionType=PositionType.Normal,
-        TradeType=TradeType.Buy,
+        Type=PositionType.Normal,
+        Direction=Direction.Buy,
         Volume=100000,
         Quantity=1.0,
         EntryTimestamp=dt,
@@ -71,15 +71,15 @@ def test_portfolio_initialization(db):
     )
     assert pos.UID == 1001
     assert pos.Security.UID == sec.UID
-    assert pos.TradeType == TradeType.Buy
+    assert pos.Direction == Direction.Buy
     assert pos.EntryPrice.Price == pytest.approx(1.0500)
 
     exit_dt = datetime(2023, 1, 1, 14, 0, 0)
     trade = TradeAPI(
         UID=2001,
         Security=sec.UID,
-        PositionType=PositionType.Normal,
-        TradeType=TradeType.Buy,
+        Type=PositionType.Normal,
+        Direction=Direction.Buy,
         Volume=100000,
         Quantity=1.0,
         EntryTimestamp=dt,

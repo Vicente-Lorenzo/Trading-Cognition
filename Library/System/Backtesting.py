@@ -436,7 +436,7 @@ class BacktestingSystemAPI(SystemAPI):
     def _next_tid(self):
         return next(self._tids)
 
-    def _calculate_statistics(self, entry_timestamp: datetime, exit_timestamp: datetime, trade_type: TradeType, volume: float, price_delta: float, tick: Tick) -> tuple[float, float, float, float, float, float, float]:
+    def _calculate_statistics(self, entry_timestamp: datetime, exit_timestamp: datetime, trade_type: Direction, volume: float, price_delta: float, tick: Tick) -> tuple[float, float, float, float, float, float, float]:
         quantity = volume / self.symbol_data.LotSize
         points = price_delta / self.symbol_data.PointSize
         pips = price_delta / self.symbol_data.PipSize
@@ -445,7 +445,7 @@ class BacktestingSystemAPI(SystemAPI):
         commission_pnl = self.commission_fee(timestamp=tick.Timestamp, volume=volume, spread=spread)
         swap_pnl = 0.0
         match trade_type:
-            case TradeType.Buy:
+            case Direction.Buy:
                 swap_pnl = self.swap_buy_fee(
                     timestamp=tick.Timestamp,
                     entry_timestamp=entry_timestamp,
@@ -453,7 +453,7 @@ class BacktestingSystemAPI(SystemAPI):
                     volume=volume,
                     spread=spread
                 )
-            case TradeType.Sell:
+            case Direction.Sell:
                 swap_pnl = self.swap_sell_fee(
                     timestamp=tick.Timestamp,
                     entry_timestamp=entry_timestamp,
@@ -464,7 +464,7 @@ class BacktestingSystemAPI(SystemAPI):
         used_margin = 0.0
         return quantity, points, pips, gross_pnl, commission_pnl, swap_pnl, used_margin
 
-    def _open_position(self, position_type: PositionType, trade_type: TradeType, volume: float, entry_price: float, sl_price: float | None, tp_price: float | None, price_delta: float, tick: Tick) -> Position:
+    def _open_position(self, position_type: PositionType, trade_type: Direction, volume: float, entry_price: float, sl_price: float | None, tp_price: float | None, price_delta: float, tick: Tick) -> Position:
         pid = self._next_pid()
         entry_timestamp = tick.Timestamp
         quantity, points, pips, gross_pnl, commission_pnl, swap_pnl, used_margin = self._calculate_statistics(
@@ -479,7 +479,7 @@ class BacktestingSystemAPI(SystemAPI):
         return Position(
             PositionID=pid,
             PositionType=position_type,
-            TradeType=trade_type,
+            Direction=trade_type,
             EntryTimestamp=entry_timestamp,
             EntryPrice=entry_price,
             Volume=volume,
@@ -500,18 +500,18 @@ class BacktestingSystemAPI(SystemAPI):
         sl_price = None if sl_price_delta is None else entry_price - sl_price_delta
         tp_price = None if tp_price_delta is None else entry_price + tp_price_delta
         price_delta = tick.Bid.Price - entry_price
-        return self._open_position(position_type, TradeType.Buy, volume, entry_price, sl_price, tp_price, price_delta, tick)
+        return self._open_position(position_type, Direction.Buy, volume, entry_price, sl_price, tp_price, price_delta, tick)
 
     def _open_sell_position(self, position_type: PositionType, volume: float, sl_price_delta: float | None, tp_price_delta: float | None, tick: Tick) -> Position:
         entry_price = tick.Bid.Price
         sl_price = None if sl_price_delta is None else entry_price + sl_price_delta
         tp_price = None if tp_price_delta is None else entry_price - tp_price_delta
         price_delta = entry_price - tick.Ask.Price
-        return self._open_position(position_type, TradeType.Sell, volume, entry_price, sl_price, tp_price, price_delta, tick)
+        return self._open_position(position_type, Direction.Sell, volume, entry_price, sl_price, tp_price, price_delta, tick)
 
     def _close_position(self, position: Position, exit_price: float, price_delta: float, tick: Tick) -> Trade:
         tid = self._next_tid()
-        trade_type = position.TradeType
+        trade_type = position.Direction
         entry_timestamp = position.EntryTimestamp
         exit_timestamp = tick.Timestamp
         quantity, points, pips, gross_pnl, commission_pnl, swap_pnl, used_margin = self._calculate_statistics(
@@ -528,8 +528,8 @@ class BacktestingSystemAPI(SystemAPI):
         return Trade(
             PositionID=position.PositionID,
             TradeID=tid,
-            PositionType=position.PositionType,
-            TradeType=trade_type,
+            Type=position.Type,
+            Direction=trade_type,
             EntryTimestamp=entry_timestamp,
             ExitTimestamp=exit_timestamp,
             EntryPrice=position.EntryPrice,
@@ -779,8 +779,8 @@ class BacktestingSystemAPI(SystemAPI):
                     self._tick_data_next = None
 
                 for position_id, position in list(self._positions.items()):
-                    match position.TradeType:
-                        case TradeType.Buy:
+                    match position.Direction:
+                        case Direction.Buy:
                             if position.StopLoss.Price is not None:
                                 if low_bid_at <= position.StopLoss.Price:
                                     self.send_action_close(CloseBuyAction(position_id), Tick(self._tick_open_next.Timestamp, low_ask_at, low_bid_at))
@@ -795,7 +795,7 @@ class BacktestingSystemAPI(SystemAPI):
                                 if self._tick_open_next.Bid.Price >= position.TakeProfit.Price:
                                     self.send_action_close(CloseBuyAction(position_id))
                                     continue
-                        case TradeType.Sell:
+                        case Direction.Sell:
                             if position.StopLoss.Price is not None:
                                 if high_ask_at >= position.StopLoss.Price:
                                     self.send_action_close(CloseSellAction(position_id), Tick(self._tick_open_next.Timestamp, high_ask_at, high_bid_at))

@@ -4,38 +4,43 @@ from datetime import datetime
 from Library.Database.Dataframe import pd, pl
 from Library.Utility.Service import ServiceAPI
 from Library.Utility.Typing import MISSING, Missing
-from Library.Spotware.Market import _millis_
-
-_SIDE_MAP_ = {"BUY": 1, "SELL": 2}
-_ORDER_TYPE_MAP_ = {"MARKET": 1, "LIMIT": 2, "STOP": 3, "STOP_LOSS_TAKE_PROFIT": 4, "MARKET_RANGE": 5, "STOP_LIMIT": 6}
-_TIME_IN_FORCE_MAP_ = {"GTD": 1, "GTC": 2, "IOC": 3, "FOK": 4, "MOO": 5,
-                       "GOOD_TILL_DATE": 1, "GOOD_TILL_CANCEL": 2,
-                       "IMMEDIATE_OR_CANCEL": 3, "FILL_OR_KILL": 4, "MARKET_ON_OPEN": 5}
-
-def _side_(value: str | int) -> int:
-    if isinstance(value, int): return value
-    return _SIDE_MAP_[str(value).upper()]
-
-def _order_type_(value: str | int) -> int:
-    if isinstance(value, int): return value
-    return _ORDER_TYPE_MAP_[str(value).upper()]
-
-def _tif_(value: str | int | None) -> int | None:
-    if value is None: return None
-    if isinstance(value, int): return value
-    return _TIME_IN_FORCE_MAP_[str(value).upper()]
-
-def _is_seq_(value) -> bool:
-    return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
-
-def _broadcast_(**kwargs) -> list[dict]:
-    lengths = {len(v) for v in kwargs.values() if _is_seq_(v)}
-    if not lengths: return [kwargs]
-    if len(lengths) > 1: raise ValueError(f"Mismatched batch lengths: {sorted(lengths)}")
-    n = lengths.pop()
-    return [{k: (v[i] if _is_seq_(v) else v) for k, v in kwargs.items()} for i in range(n)]
+from Library.Portfolio.Order import OrderAPI
 
 class ExecutionAPI(ServiceAPI):
+
+    _SIDE_MAP_ = {"BUY": 1, "SELL": 2}
+    _ORDER_TYPE_MAP_ = {"MARKET": 1, "LIMIT": 2, "STOP": 3, "STOP_LOSS_TAKE_PROFIT": 4, "MARKET_RANGE": 5, "STOP_LIMIT": 6}
+    _TIME_IN_FORCE_MAP_ = {"GTD": 1, "GTC": 2, "IOC": 3, "FOK": 4, "MOO": 5,
+                           "GOOD_TILL_DATE": 1, "GOOD_TILL_CANCEL": 2,
+                           "IMMEDIATE_OR_CANCEL": 3, "FILL_OR_KILL": 4, "MARKET_ON_OPEN": 5}
+
+    @classmethod
+    def _side_(cls, value: str | int) -> int:
+        if isinstance(value, int): return value
+        return cls._SIDE_MAP_[str(value).upper()]
+
+    @classmethod
+    def _order_type_(cls, value: str | int) -> int:
+        if isinstance(value, int): return value
+        return cls._ORDER_TYPE_MAP_[str(value).upper()]
+
+    @classmethod
+    def _tif_(cls, value: str | int | None) -> int | None:
+        if value is None: return None
+        if isinstance(value, int): return value
+        return cls._TIME_IN_FORCE_MAP_[str(value).upper()]
+
+    @staticmethod
+    def _is_seq_(value) -> bool:
+        return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
+
+    @classmethod
+    def _broadcast_(cls, **kwargs) -> list[dict]:
+        lengths = {len(v) for v in kwargs.values() if cls._is_seq_(v)}
+        if not lengths: return [kwargs]
+        if len(lengths) > 1: raise ValueError(f"Mismatched batch lengths: {sorted(lengths)}")
+        n = lengths.pop()
+        return [{k: (v[i] if cls._is_seq_(v) else v) for k, v in kwargs.items()} for i in range(n)]
 
     def market_order(self,
                      side: str | int | Sequence[str | int],
@@ -48,8 +53,8 @@ class ExecutionAPI(ServiceAPI):
                      client_order_id: str | Sequence[str] | None = None,
                      trailing: bool | Sequence[bool] = False,
                      guaranteed: bool | Sequence[bool] = False,
-                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             side=side,
             symbol=symbol,
             volume=volume,
@@ -62,10 +67,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._order_(order_type="MARKET", **p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Market Order Operation: Placed {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Market Order Operation: Placed {len(result)} orders ({timer.result()})")
+        return result
 
     def market_buy_order(self,
                          symbol: int | Sequence[int],
@@ -77,7 +83,7 @@ class ExecutionAPI(ServiceAPI):
                          client_order_id: str | Sequence[str] | None = None,
                          trailing: bool | Sequence[bool] = False,
                          guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.market_order(
             side="BUY",
             symbol=symbol,
@@ -101,7 +107,7 @@ class ExecutionAPI(ServiceAPI):
                           client_order_id: str | Sequence[str] | None = None,
                           trailing: bool | Sequence[bool] = False,
                           guaranteed: bool | Sequence[bool] = False,
-                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.market_order(
             side="SELL",
             symbol=symbol,
@@ -128,8 +134,8 @@ class ExecutionAPI(ServiceAPI):
                     client_order_id: str | Sequence[str] | None = None,
                     trailing: bool | Sequence[bool] = False,
                     guaranteed: bool | Sequence[bool] = False,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             side=side,
             symbol=symbol,
             volume=volume,
@@ -144,10 +150,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._order_(order_type="MARKET_RANGE", **p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Range Order Operation: Placed {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Range Order Operation: Placed {len(result)} orders ({timer.result()})")
+        return result
 
     def range_buy_order(self,
                         symbol: int | Sequence[int],
@@ -161,7 +168,7 @@ class ExecutionAPI(ServiceAPI):
                         client_order_id: str | Sequence[str] | None = None,
                         trailing: bool | Sequence[bool] = False,
                         guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.range_order(
             side="BUY",
             symbol=symbol,
@@ -189,7 +196,7 @@ class ExecutionAPI(ServiceAPI):
                          client_order_id: str | Sequence[str] | None = None,
                          trailing: bool | Sequence[bool] = False,
                          guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.range_order(
             side="SELL",
             symbol=symbol,
@@ -219,8 +226,8 @@ class ExecutionAPI(ServiceAPI):
                     client_order_id: str | Sequence[str] | None = None,
                     trailing: bool | Sequence[bool] = False,
                     guaranteed: bool | Sequence[bool] = False,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             side=side,
             symbol=symbol,
             volume=volume,
@@ -236,10 +243,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._order_(order_type="LIMIT", **p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Limit Order Operation: Placed {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Limit Order Operation: Placed {len(result)} orders ({timer.result()})")
+        return result
 
     def limit_buy_order(self,
                         symbol: int | Sequence[int],
@@ -254,7 +262,7 @@ class ExecutionAPI(ServiceAPI):
                         client_order_id: str | Sequence[str] | None = None,
                         trailing: bool | Sequence[bool] = False,
                         guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.limit_order(
             side="BUY",
             symbol=symbol,
@@ -284,7 +292,7 @@ class ExecutionAPI(ServiceAPI):
                          client_order_id: str | Sequence[str] | None = None,
                          trailing: bool | Sequence[bool] = False,
                          guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.limit_order(
             side="SELL",
             symbol=symbol,
@@ -316,8 +324,8 @@ class ExecutionAPI(ServiceAPI):
                    client_order_id: str | Sequence[str] | None = None,
                    trailing: bool | Sequence[bool] = False,
                    guaranteed: bool | Sequence[bool] = False,
-                   legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                   legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             side=side,
             symbol=symbol,
             volume=volume,
@@ -334,10 +342,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._order_(order_type="STOP", **p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Stop Order Operation: Placed {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Stop Order Operation: Placed {len(result)} orders ({timer.result()})")
+        return result
 
     def stop_buy_order(self,
                        symbol: int | Sequence[int],
@@ -353,7 +362,7 @@ class ExecutionAPI(ServiceAPI):
                        client_order_id: str | Sequence[str] | None = None,
                        trailing: bool | Sequence[bool] = False,
                        guaranteed: bool | Sequence[bool] = False,
-                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.stop_order(
             side="BUY",
             symbol=symbol,
@@ -385,7 +394,7 @@ class ExecutionAPI(ServiceAPI):
                         client_order_id: str | Sequence[str] | None = None,
                         trailing: bool | Sequence[bool] = False,
                         guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.stop_order(
             side="SELL",
             symbol=symbol,
@@ -418,8 +427,8 @@ class ExecutionAPI(ServiceAPI):
                          client_order_id: str | Sequence[str] | None = None,
                          trailing: bool | Sequence[bool] = False,
                          guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             side=side,
             symbol=symbol,
             volume=volume,
@@ -436,10 +445,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._order_(order_type="STOP_LIMIT", **p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Stop Limit Order Operation: Placed {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Stop Limit Order Operation: Placed {len(result)} orders ({timer.result()})")
+        return result
 
     def stop_limit_buy_order(self,
                              symbol: int | Sequence[int],
@@ -455,7 +465,7 @@ class ExecutionAPI(ServiceAPI):
                              client_order_id: str | Sequence[str] | None = None,
                              trailing: bool | Sequence[bool] = False,
                              guaranteed: bool | Sequence[bool] = False,
-                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.stop_limit_order(
             side="BUY",
             symbol=symbol,
@@ -487,7 +497,7 @@ class ExecutionAPI(ServiceAPI):
                               client_order_id: str | Sequence[str] | None = None,
                               trailing: bool | Sequence[bool] = False,
                               guaranteed: bool | Sequence[bool] = False,
-                              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.stop_limit_order(
             side="SELL",
             symbol=symbol,
@@ -516,8 +526,8 @@ class ExecutionAPI(ServiceAPI):
                      slippage_points: int | Sequence[int] | None = None,
                      trailing: bool | Sequence[bool] | None = None,
                      guaranteed: bool | Sequence[bool] | None = None,
-                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             order=order,
             volume=volume,
             limit_price=limit_price,
@@ -530,10 +540,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._modify_order_(**p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Modify Order Operation: Modified {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Modify Order Operation: Modified {len(result)} orders ({timer.result()})")
+        return result
 
     def modify_buy_order(self,
                          order: int | Sequence[int],
@@ -546,7 +557,7 @@ class ExecutionAPI(ServiceAPI):
                          slippage_points: int | Sequence[int] | None = None,
                          trailing: bool | Sequence[bool] | None = None,
                          guaranteed: bool | Sequence[bool] | None = None,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.modify_order(
             order=order,
             volume=volume,
@@ -571,7 +582,7 @@ class ExecutionAPI(ServiceAPI):
                           slippage_points: int | Sequence[int] | None = None,
                           trailing: bool | Sequence[bool] | None = None,
                           guaranteed: bool | Sequence[bool] | None = None,
-                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.modify_order(
             order=order,
             volume=volume,
@@ -587,25 +598,26 @@ class ExecutionAPI(ServiceAPI):
 
     def close_order(self,
                     order: int | Sequence[int] | None = None,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         def _fetch_():
             ids = self._resolve_orders_(order)
             rows = [self._close_order_(order=i) for i in ids]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Close Order Operation: Cancelled {len(df)} orders ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Close Order Operation: Cancelled {len(result)} orders ({timer.result()})")
+        return result
 
     def close_buy_order(self,
                         order: int | Sequence[int] | None = None,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.close_order(
             order=order,
             legacy=legacy)
 
     def close_sell_order(self,
                          order: int | Sequence[int] | None = None,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.close_order(
             order=order,
             legacy=legacy)
@@ -616,8 +628,8 @@ class ExecutionAPI(ServiceAPI):
                         take_profit: float | Sequence[float] | None = None,
                         trailing: bool | Sequence[bool] | None = None,
                         guaranteed: bool | Sequence[bool] | None = None,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
-        batches = _broadcast_(
+                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+        batches = self._broadcast_(
             position=position,
             stop_loss=stop_loss,
             take_profit=take_profit,
@@ -625,10 +637,11 @@ class ExecutionAPI(ServiceAPI):
             guaranteed=guaranteed)
         def _fetch_():
             rows = [self._modify_position_(**p) for p in batches]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Modify Position Operation: Modified {len(df)} positions ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Modify Position Operation: Modified {len(result)} positions ({timer.result()})")
+        return result
 
     def modify_buy_position(self,
                             position: int | Sequence[int],
@@ -636,7 +649,7 @@ class ExecutionAPI(ServiceAPI):
                             take_profit: float | Sequence[float] | None = None,
                             trailing: bool | Sequence[bool] | None = None,
                             guaranteed: bool | Sequence[bool] | None = None,
-                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.modify_position(
             position=position,
             stop_loss=stop_loss,
@@ -651,7 +664,7 @@ class ExecutionAPI(ServiceAPI):
                              take_profit: float | Sequence[float] | None = None,
                              trailing: bool | Sequence[bool] | None = None,
                              guaranteed: bool | Sequence[bool] | None = None,
-                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.modify_position(
             position=position,
             stop_loss=stop_loss,
@@ -663,19 +676,20 @@ class ExecutionAPI(ServiceAPI):
     def close_position(self,
                        position: int | Sequence[int] | None = None,
                        volume: int | Sequence[int] | None = None,
-                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         def _fetch_():
             pairs = self._resolve_positions_(position, volume)
             rows = [self._close_position_(position=i, volume=v) for i, v in pairs]
+            if legacy is MISSING: return rows
             return self._api_.frame(rows, legacy=legacy)
-        timer, df = super()._fetch_(callback=_fetch_)
-        self._log_.info(lambda: f"Close Position Operation: Closed {len(df)} positions ({timer.result()})")
-        return df
+        timer, result = super()._fetch_(callback=_fetch_)
+        self._log_.info(lambda: f"Close Position Operation: Closed {len(result)} positions ({timer.result()})")
+        return result
 
     def close_buy_position(self,
                            position: int | Sequence[int] | None = None,
                            volume: int | Sequence[int] | None = None,
-                           legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                           legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.close_position(
             position=position,
             volume=volume,
@@ -684,7 +698,7 @@ class ExecutionAPI(ServiceAPI):
     def close_sell_position(self,
                             position: int | Sequence[int] | None = None,
                             volume: int | Sequence[int] | None = None,
-                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
         return self.close_position(
             position=position,
             volume=volume,
@@ -711,11 +725,12 @@ class ExecutionAPI(ServiceAPI):
                 trailing: bool = False,
                 guaranteed: bool = False) -> dict:
         from ctrader_open_api import Protobuf
+        from Library.Spotware.Market import MarketAPI
         kwargs = {
             "ctidTraderAccountId": self._api_._account_id_,
             "symbolId": int(symbol),
-            "orderType": _order_type_(order_type),
-            "tradeSide": _side_(side),
+            "orderType": self._order_type_(order_type),
+            "tradeSide": self._side_(side),
             "volume": int(volume)
         }
         if limit_price is not None: kwargs["limitPrice"] = float(limit_price)
@@ -724,9 +739,9 @@ class ExecutionAPI(ServiceAPI):
         if slippage_points is not None: kwargs["slippageInPoints"] = int(slippage_points)
         if stop_loss is not None: kwargs["stopLoss"] = float(stop_loss)
         if take_profit is not None: kwargs["takeProfit"] = float(take_profit)
-        tif = _tif_(time_in_force)
+        tif = self._tif_(time_in_force)
         if tif is not None: kwargs["timeInForce"] = tif
-        if expiration is not None: kwargs["expirationTimestamp"] = _millis_(expiration)
+        if expiration is not None: kwargs["expirationTimestamp"] = MarketAPI._millis_(expiration)
         if label is not None: kwargs["label"] = str(label)
         if comment is not None: kwargs["comment"] = str(comment)
         if client_order_id is not None: kwargs["clientOrderId"] = str(client_order_id)
@@ -749,6 +764,7 @@ class ExecutionAPI(ServiceAPI):
                        trailing: bool | None = None,
                        guaranteed: bool | None = None) -> dict:
         from ctrader_open_api import Protobuf
+        from Library.Spotware.Market import MarketAPI
         kwargs = {
             "ctidTraderAccountId": self._api_._account_id_,
             "orderId": int(order)
@@ -758,7 +774,7 @@ class ExecutionAPI(ServiceAPI):
         if stop_price is not None: kwargs["stopPrice"] = float(stop_price)
         if stop_loss is not None: kwargs["stopLoss"] = float(stop_loss)
         if take_profit is not None: kwargs["takeProfit"] = float(take_profit)
-        if expiration is not None: kwargs["expirationTimestamp"] = _millis_(expiration)
+        if expiration is not None: kwargs["expirationTimestamp"] = MarketAPI._millis_(expiration)
         if slippage_points is not None: kwargs["slippageInPoints"] = int(slippage_points)
         if trailing is not None: kwargs["trailingStopLoss"] = bool(trailing)
         if guaranteed is not None: kwargs["guaranteedStopLoss"] = bool(guaranteed)
@@ -804,24 +820,24 @@ class ExecutionAPI(ServiceAPI):
 
     def _resolve_orders_(self, order: int | Sequence[int] | None) -> list[int]:
         if order is None:
-            orders = self._api_.portfolio.orders()
-            return orders["OrderID"].to_list() if len(orders) else []
-        if _is_seq_(order): return [int(i) for i in order]
+            orders = self._api_.portfolio.orders(legacy=False)
+            return [o.OrderID for o in orders] if orders else []
+        if self._is_seq_(order): return [int(i) for i in order]
         return [int(order)]
 
     def _resolve_positions_(self,
                             position: int | Sequence[int] | None,
                             volume: int | Sequence[int] | None) -> list[tuple[int, int]]:
         if position is None:
-            positions = self._api_.portfolio.positions()
-            if not len(positions): return []
-            return list(zip(positions["PositionID"].to_list(), positions["Volume"].to_list()))
-        ids = [int(i) for i in position] if _is_seq_(position) else [int(position)]
+            positions = self._api_.portfolio.positions(legacy=False)
+            if not positions: return []
+            return [(p.PositionID, p.Volume) for p in positions]
+        ids = [int(i) for i in position] if self._is_seq_(position) else [int(position)]
         if volume is None:
-            positions = self._api_.portfolio.positions()
-            vol_map = dict(zip(positions["PositionID"].to_list(), positions["Volume"].to_list()))
+            positions = self._api_.portfolio.positions(legacy=False)
+            vol_map = {p.PositionID: p.Volume for p in positions}
             return [(i, int(vol_map[i])) for i in ids]
-        if _is_seq_(volume):
+        if self._is_seq_(volume):
             if len(volume) != len(ids):
                 raise ValueError(f"Mismatched batch lengths: position ({len(ids)}) vs volume ({len(volume)})")
             return [(i, int(v)) for i, v in zip(ids, volume)]

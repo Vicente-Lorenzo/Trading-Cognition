@@ -103,7 +103,7 @@ def test_position_filters_by_id(spotware):
     assert len(df) == 1
     assert df["PositionID"][0] == 222
     assert df["SecurityUID"][0] == 2
-    assert df["TradeType"][0] == "Sell"
+    assert df["Direction"][0] == "Sell"
     assert type(spotware._sent_[0]).__name__ == "ProtoOAReconcileReq"
 
 def test_positions_parses_reconcile(spotware):
@@ -133,7 +133,7 @@ def test_positions_parses_reconcile(spotware):
     assert len(df) == 1
     assert df["PositionID"][0] == 555
     assert df["SecurityUID"][0] == 1
-    assert df["TradeType"][0] == "Buy"
+    assert df["Direction"][0] == "Buy"
     assert df["Volume"][0] == 10000
     assert df["EntryPrice"][0] == pytest.approx(1.05)
     assert df["CommissionPnL"][0] == pytest.approx(-2.0)
@@ -161,7 +161,7 @@ def test_order_fetches_single_by_id(spotware):
     assert len(df) == 1
     assert df["OrderID"][0] == 42
     assert df["SecurityUID"][0] == 3
-    assert df["TradeType"][0] == "Buy"
+    assert df["Direction"][0] == "Buy"
     sent = spotware._sent_[0]
     assert type(sent).__name__ == "ProtoOAOrderDetailsReq"
     assert sent.orderId == 42
@@ -188,7 +188,7 @@ def test_orders_pending_via_reconcile(spotware):
     assert len(df) == 1
     assert df["OrderID"][0] == 1
     assert df["SecurityUID"][0] == 5
-    assert df["TradeType"][0] == "Sell"
+    assert df["Direction"][0] == "Sell"
     assert type(spotware._sent_[0]).__name__ == "ProtoOAReconcileReq"
 
 def test_orders_historical_with_range(spotware):
@@ -216,7 +216,7 @@ def test_orders_historical_with_range(spotware):
     )
     assert len(df) == 1
     assert df["OrderID"][0] == 2
-    assert df["TradeType"][0] == "Buy"
+    assert df["Direction"][0] == "Buy"
     assert type(spotware._sent_[0]).__name__ == "ProtoOAOrderListReq"
     assert spotware._sent_[0].fromTimestamp == 1577836800000
 
@@ -276,7 +276,7 @@ def test_trade_filters_single_closing_deal_by_id(spotware):
     assert df["TradeID"][0] == 801
     assert df["PositionID"][0] == 778
     assert df["SecurityUID"][0] == 2
-    assert df["TradeType"][0] == "Sell"
+    assert df["Direction"][0] == "Sell"
     sent = spotware._sent_[0]
     assert type(sent).__name__ == "ProtoOADealListReq"
 
@@ -333,7 +333,7 @@ def test_trades_filters_to_closing_deals(spotware):
     assert df["TradeID"][0] == 700
     assert df["PositionID"][0] == 555
     assert df["SecurityUID"][0] == 1
-    assert df["TradeType"][0] == "Sell"
+    assert df["Direction"][0] == "Sell"
     assert df["EntryPrice"][0] == pytest.approx(1.04)
     assert df["ExitPrice"][0] == pytest.approx(1.05)
     assert df["GrossPnL"][0] == pytest.approx(100.0)

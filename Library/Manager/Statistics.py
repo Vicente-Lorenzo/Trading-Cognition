@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from Library.Database.Dataframe import pl
 from Library.Database import DatabaseAPI
-from Library.Classes import TradeType, Account, Trade
+from Library.Classes import Direction, Account, Trade
 from Library.Manager import EPSILON
 
 class StatisticsAPI:
@@ -184,7 +184,7 @@ class StatisticsAPI:
         return trades_df.group_by(Trade.PositionID).agg([
             pl.col(str(Trade.TradeID)),
             pl.col(str(Trade.PositionType)).first().alias(Trade.PositionType),
-            pl.col(str(Trade.TradeType)).first().alias(Trade.TradeType),
+            pl.col(str(Trade.Direction)).first().alias(Trade.Direction),
             pl.col(str(Trade.EntryTimestamp)).min().alias(Trade.EntryTimestamp),
             pl.col(str(Trade.ExitTimestamp)).max().alias(Trade.ExitTimestamp),
             pl.col(str(Trade.EntryPrice)).first().alias(Trade.EntryPrice),
@@ -210,8 +210,8 @@ class StatisticsAPI:
 
     @staticmethod
     def split_buy_sell_trades(trades_df: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataFrame]:
-        return (trades_df.filter(pl.col(str(Trade.TradeType)) == TradeType.Buy.name),
-                trades_df.filter(pl.col(str(Trade.TradeType)) == TradeType.Sell.name))
+        return (trades_df.filter(pl.col(str(Trade.Direction)) == Direction.Buy.name),
+                trades_df.filter(pl.col(str(Trade.Direction)) == Direction.Sell.name))
     
     @staticmethod
     def split_winning_losing_trades(trades_df: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataFrame]:

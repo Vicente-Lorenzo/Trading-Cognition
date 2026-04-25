@@ -1,4 +1,4 @@
-from Library.Classes import PositionType, TradeType, TechnicalMode
+from Library.Classes import PositionType, Direction, TechnicalMode
 from Library.Parameters import Parameters
 
 from Library.Utility import *
@@ -67,7 +67,7 @@ class NNFXStrategyAPI(StrategyAPI):
 
         self._last_position_id: int | None = None
         self._last_position_atr: float | None = None
-        self._last_position_trade_type: TradeType | None = None
+        self._last_position_trade_type: Direction | None = None
 
     def define_so_buy_action(self, update: PositionUpdate):
         self._last_position_id = update.Position.PositionID
@@ -168,12 +168,12 @@ class NNFXStrategyAPI(StrategyAPI):
         return volume, sl_pips
 
     def open_buy_position(self, update: BarUpdate, position_type: PositionType):
-        self._last_position_trade_type = TradeType.Buy
+        self._last_position_trade_type = Direction.Buy
         volume, sl_pips = self.calculate_position(update)
         return self.close_sell_position(update) + [OpenBuyAction(position_type, volume, sl_pips, None)]
 
     def open_sell_position(self, update: BarUpdate, position_type: PositionType):
-        self._last_position_trade_type = TradeType.Sell
+        self._last_position_trade_type = Direction.Sell
         volume, sl_pips = self.calculate_position(update)
         return self.close_buy_position(update) + [OpenSellAction(position_type, volume, sl_pips, None)]
 
@@ -187,7 +187,7 @@ class NNFXStrategyAPI(StrategyAPI):
         if not update.Manager.Positions.Buys:
             if self._normal_entry_buy(update):
                 return self.open_buy_position(update, PositionType.Normal)
-            if self._last_position_trade_type and self._last_position_trade_type == TradeType.Buy and self._continuation_entry_buy(update):
+            if self._last_position_trade_type and self._last_position_trade_type == Direction.Buy and self._continuation_entry_buy(update):
                 return self.open_buy_position(update, PositionType.Continuation)
         elif self._normal_exit_buy(update):
             return self.close_buy_position(update)
@@ -195,7 +195,7 @@ class NNFXStrategyAPI(StrategyAPI):
         if not update.Manager.Positions.Sells:
             if self._normal_entry_sell(update):
                 return self.open_sell_position(update, PositionType.Normal)
-            if self._last_position_trade_type and self._last_position_trade_type == TradeType.Sell and self._continuation_entry_sell(update):
+            if self._last_position_trade_type and self._last_position_trade_type == Direction.Sell and self._continuation_entry_sell(update):
                 return self.open_sell_position(update, PositionType.Continuation)
         elif self._normal_exit_sell(update):
             return self.close_sell_position(update)

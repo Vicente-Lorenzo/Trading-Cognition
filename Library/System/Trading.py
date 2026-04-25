@@ -16,7 +16,7 @@ from Library.System import SystemAPI
 
 from Library.Portfolio.Account import AccountAPI, AccountType, AssetType, MarginMode
 from Library.Universe.Contract import ContractAPI, CommissionMode, SwapMode, DayOfWeek
-from Library.Portfolio.Position import PositionAPI, PositionType, TradeType
+from Library.Portfolio.Position import PositionAPI, PositionType, Direction
 from Library.Portfolio.Trade import TradeAPI
 from Library.Market.Bar import BarAPI
 from Library.Market.Tick import TickAPI
@@ -261,8 +261,8 @@ class TradingSystemAPI(SystemAPI):
             pos_type = PositionType.Normal
         return PositionAPI(
             PositionID=pos.Id,
-            PositionType=pos_type,
-            TradeType=TradeType(int(pos.TradeType)),
+            Type=pos_type,
+            Direction=Direction(int(pos.Direction)),
             Volume=pos.VolumeInUnits,
             Quantity=pos.Quantity,
             EntryTimestamp=pos.EntryTime,
@@ -287,8 +287,8 @@ class TradingSystemAPI(SystemAPI):
         return TradeAPI(
             PositionID=trd.PositionId,
             TradeID=trd.ClosingDealId,
-            PositionType=pos_type,
-            TradeType=TradeType(int(trd.TradeType)),
+            Type=pos_type,
+            Direction=Direction(int(trd.Direction)),
             Volume=trd.VolumeInUnits,
             Quantity=trd.Quantity,
             EntryTimestamp=trd.EntryTime,
@@ -514,7 +514,7 @@ class TradingSystemAPI(SystemAPI):
                 StopLoss=pos.StopLoss,
                 TakeProfit=pos.TakeProfit
             )
-            update_id = UpdateID.OpenedBuy if int(pos.TradeType) == 0 else UpdateID.OpenedSell
+            update_id = UpdateID.OpenedBuy if int(pos.Direction) == 0 else UpdateID.OpenedSell
             self.queue.put(update_id)
             self.queue.put(self._snapshot_bar(tick_volume=0.0))
             self.queue.put(self._convert_account(self.api.Account))
@@ -533,7 +533,7 @@ class TradingSystemAPI(SystemAPI):
             if last is None:
                 return
 
-            buy = int(pos.TradeType) == 0
+            buy = int(pos.Direction) == 0
             if abs(pos.VolumeInUnits - last.Volume) > 1e-12:
                 trade = self._find_trade(pos.Id)
                 update_id = UpdateID.ModifiedBuyVolume if buy else UpdateID.ModifiedSellVolume
@@ -574,7 +574,7 @@ class TradingSystemAPI(SystemAPI):
             if not self._is_own_position(pos):
                 return
             trade = self._find_trade(pos.Id)
-            buy = int(pos.TradeType) == 0
+            buy = int(pos.Direction) == 0
             update_id = UpdateID.ClosedBuy if buy else UpdateID.ClosedSell
             self.queue.put(update_id)
             self.queue.put(self._snapshot_bar(tick_volume=0.0))

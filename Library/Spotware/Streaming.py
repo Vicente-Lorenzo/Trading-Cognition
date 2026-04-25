@@ -2,17 +2,19 @@ import threading
 from typing import Callable
 
 from Library.Utility.Service import ServiceAPI
-from Library.Spotware.Market import _PRICE_SCALE_, _timeframe_id_, _timeframe_uid_
-
-_SPOT_EVENT_ = "ProtoOASpotEvent"
-_DEPTH_EVENT_ = "ProtoOADepthEvent"
+from Library.Market.Tick import TickAPI
+from Library.Market.Bar import BarAPI
+from Library.Spotware.Market import MarketAPI
 
 class StreamingAPI(ServiceAPI):
+
+    _SPOT_EVENT_ = "ProtoOASpotEvent"
+    _DEPTH_EVENT_ = "ProtoOADepthEvent"
 
     def ticks(self,
               symbols: int | list[int],
               callback: Callable,
-              frame: bool = True,
+              frame: bool = False,
               limit: int | None = None,
               timeout: int | None = None) -> None:
         from ctrader_open_api import Protobuf
@@ -24,14 +26,25 @@ class StreamingAPI(ServiceAPI):
             def handler(message):
                 if done.is_set(): return
                 payload = Protobuf.extract(message)
-                if type(payload).__name__ != _SPOT_EVENT_: return
+                if type(payload).__name__ != self._SPOT_EVENT_: return
                 if int(payload.symbolId) not in ids: return
-                data = {"SecurityUID": int(payload.symbolId)}
-                if payload.HasField("bid"): data["BidPrice"] = payload.bid / _PRICE_SCALE_
-                if payload.HasField("ask"): data["AskPrice"] = payload.ask / _PRICE_SCALE_
-                if payload.HasField("timestamp"): data["Timestamp"] = int(payload.timestamp)
-                if len(data) > 1:
-                    callback(self._api_.frame([data]) if frame else data)
+                
+                from Library.Utility.DateTime import timestamp_to_datetime
+                from datetime import timezone
+                
+                dt = None
+                if payload.HasField("timestamp"):
+                    dt = timestamp_to_datetime(int(payload.timestamp), milliseconds=True).replace(tzinfo=timezone.utc)
+                
+                if payload.HasField("bid") or payload.HasField("ask"):
+                    tick = TickAPI(
+                        SecurityUID=int(payload.symbolId),
+                        DateTime=dt,
+                        AskPrice=(payload.ask / MarketAPI._PRICE_SCALE_) if payload.HasField("ask") else None,
+                        BidPrice=(payload.bid / MarketAPI._PRICE_SCALE_) if payload.HasField("bid") else None,
+                        db=self._api_._db_ if hasattr(self._api_, "_db_") else None
+                    )
+                    callback(self._api_.frame([tick]) if frame else tick)
                     counter["n"] += 1
                     if limit is not None and counter["n"] >= limit: done.set()
             self._api_._subscribe_(handler)
@@ -60,13 +73,13 @@ class StreamingAPI(ServiceAPI):
              symbol: int,
              timeframe: str | int,
              callback: Callable,
-             frame: bool = True,
+             frame: bool = False,
              limit: int | None = None,
              timeout: int | None = None) -> None:
         from ctrader_open_api import Protobuf
         sid = int(symbol)
-        tf_id = _timeframe_id_(timeframe)
-        tf_uid = _timeframe_uid_(tf_id)
+        tf_id = MarketAPI._timeframe_id_(timeframe)
+        tf_uid = MarketAPI._timeframe_uid_(tf_id)
         try:
             self.connect()
             counter = {"n": 0}
@@ -74,22 +87,26 @@ class StreamingAPI(ServiceAPI):
             def handler(message):
                 if done.is_set(): return
                 payload = Protobuf.extract(message)
-                if type(payload).__name__ != _SPOT_EVENT_: return
+                if type(payload).__name__ != self._SPOT_EVENT_: return
                 if int(payload.symbolId) != sid: return
                 for bar in payload.trendbar:
                     if int(bar.period) != tf_id: continue
                     low = bar.low
-                    data = {
-                        "SecurityUID": sid,
-                        "TimeframeUID": tf_uid,
-                        "UtcTimestampInMinutes": int(bar.utcTimestampInMinutes),
-                        "OpenBidPrice": (low + bar.deltaOpen) / _PRICE_SCALE_,
-                        "HighBidPrice": (low + bar.deltaHigh) / _PRICE_SCALE_,
-                        "LowBidPrice": low / _PRICE_SCALE_,
-                        "CloseBidPrice": (low + bar.deltaClose) / _PRICE_SCALE_,
-                        "TickVolume": int(bar.volume)
-                    }
-                    callback(self._api_.frame([data]) if frame else data)
+                    from Library.Utility.DateTime import timestamp_to_datetime
+                    from datetime import timezone
+                    ts = timestamp_to_datetime(int(bar.utcTimestampInMinutes) * 60, milliseconds=False).replace(tzinfo=timezone.utc)
+                    b = BarAPI(
+                        SecurityUID=sid,
+                        TimeframeUID=tf_uid,
+                        DateTime=ts,
+                        OpenBidPrice=(low + bar.deltaOpen) / MarketAPI._PRICE_SCALE_,
+                        HighBidPrice=(low + bar.deltaHigh) / MarketAPI._PRICE_SCALE_,
+                        LowBidPrice=low / MarketAPI._PRICE_SCALE_,
+                        CloseBidPrice=(low + bar.deltaClose) / MarketAPI._PRICE_SCALE_,
+                        TickVolume=int(bar.volume),
+                        db=self._api_._db_ if hasattr(self._api_, "_db_") else None
+                    )
+                    callback(self._api_.frame([b]) if frame else b)
                     counter["n"] += 1
                     if limit is not None and counter["n"] >= limit:
                         done.set()
@@ -121,7 +138,7 @@ class StreamingAPI(ServiceAPI):
     def depth(self,
               symbols: int | list[int],
               callback: Callable,
-              frame: bool = True,
+              frame: bool = False,
               limit: int | None = None,
               timeout: int | None = None) -> None:
         from ctrader_open_api import Protobuf
@@ -133,7 +150,7 @@ class StreamingAPI(ServiceAPI):
             def handler(message):
                 if done.is_set(): return
                 payload = Protobuf.extract(message)
-                if type(payload).__name__ != _DEPTH_EVENT_: return
+                if type(payload).__name__ != self._DEPTH_EVENT_: return
                 if int(payload.symbolId) not in ids: return
                 rows = []
                 for q in payload.newQuotes:
@@ -141,8 +158,8 @@ class StreamingAPI(ServiceAPI):
                         "SecurityUID": int(payload.symbolId),
                         "QuoteId": int(q.id),
                         "Size": int(q.size),
-                        "BidPrice": (q.bid / _PRICE_SCALE_) if q.HasField("bid") else None,
-                        "AskPrice": (q.ask / _PRICE_SCALE_) if q.HasField("ask") else None,
+                        "BidPrice": (q.bid / MarketAPI._PRICE_SCALE_) if q.HasField("bid") else None,
+                        "AskPrice": (q.ask / MarketAPI._PRICE_SCALE_) if q.HasField("ask") else None,
                         "Action": "New"
                     })
                 for qid in payload.deletedQuotes:
