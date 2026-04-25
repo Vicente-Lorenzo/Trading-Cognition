@@ -3,7 +3,7 @@ from Library.Market.Timestamp import (
     TimestampAPI
 )
 from Library.Market.Price import (
-    TradeType,
+    Direction,
     PriceAPI
 )
 from Library.Market.Tick import TickAPI
@@ -14,7 +14,7 @@ from Library.Market.Market import MarketAPI
 __all__ = [
     "CycleAPI",
     "TimestampAPI",
-    "TradeType",
+    "Direction",
     "PriceAPI",
     "TickAPI",
     "BarAPI",
