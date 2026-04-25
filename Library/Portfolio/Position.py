@@ -8,18 +8,18 @@ from dataclasses import dataclass, field, InitVar
 from Library.Database.Dataframe import pl
 from Library.Database.Database import IdentityKey, ForeignKey, DatabaseAPI
 from Library.Database.Datapoint import DatapointAPI
-from Library.Database.Dataclass import overridefield
+from Library.Database.Dataclass import overridefield, coerce
 from Library.Database.Enumeration import as_enum
 from Library.Portfolio.Portfolio import PortfolioAPI
 from Library.Portfolio.PnL import PnLAPI
 from Library.Universe.Universe import UniverseAPI
 from Library.Market.Timestamp import TimestampAPI
-from Library.Market.Price import PriceAPI, TradeType
+from Library.Market.Price import PriceAPI, Direction
 from Library.Utility.Typing import MISSING
 
 if TYPE_CHECKING:
     from Library.Universe.Security import SecurityAPI
-    from Library.Universe.Contract import ContractAPI
+    from Library.Portfolio.Order import OrderAPI
 
 class PositionType(Enum):
     Normal = 0
@@ -29,16 +29,18 @@ class PositionType(Enum):
 class PositionAPI(DatapointAPI):
 
     Database: ClassVar[str] = DatapointAPI.Database
-    Schema: ClassVar[str] = PortfolioAPI.Schema
+    Schema: ClassVar[str] = "Portfolio"
     Table: ClassVar[str] = "Position"
 
     UID: int | None = None
-    PositionType: PositionType | str | None = None
-    TradeType: TradeType | str | None = None
+    Type: InitVar[PositionType | str | None] = field(default=MISSING)
+    Direction: InitVar[Direction | str | None] = field(default=MISSING)
     Volume: float | None = None
     Quantity: float | None = None
     UsedMargin: float | None = None
     MidBalance: float | None = None
+    Label: str | None = None
+    Comment: str | None = None
 
     Security: InitVar[int | SecurityAPI | None] = field(default=MISSING)
 
@@ -61,7 +63,10 @@ class PositionAPI(DatapointAPI):
 
     EntryBalance: InitVar[float | None] = field(default=MISSING)
 
-    Contract: InitVar[ContractAPI | None] = field(default=MISSING)
+    Order: InitVar[int | OrderAPI | None] = field(default=MISSING)
+
+    _type_: PositionType | None = field(default=None, init=False, repr=False)
+    _direction_: Direction | None = field(default=None, init=False, repr=False)
 
     _security_: SecurityAPI | None = field(default=None, init=False, repr=False)
     _entry_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
@@ -80,16 +85,19 @@ class PositionAPI(DatapointAPI):
     _swap_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
     _net_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
     _entry_balance_: float | None = field(default=None, init=False, repr=False)
-    _contract_: ContractAPI | None = field(default=None, init=False, repr=False)
+    _order_: OrderAPI | None = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
         from Library.Universe.Security import SecurityAPI
-        return {
+        from Library.Portfolio.Order import OrderAPI
+        s = super().Structure
+        cols = {
             self.ID.UID: IdentityKey(pl.Int64),
             self.ID.Security: ForeignKey(pl.Int64, reference=f'"{UniverseAPI.Schema}"."{SecurityAPI.Table}"("{SecurityAPI.ID.UID}")'),
-            self.ID.PositionType: pl.Enum([e.name for e in PositionType]),
-            self.ID.TradeType: pl.Enum([e.name for e in TradeType]),
+            self.ID.Order: ForeignKey(pl.Int64, reference=f'"{PortfolioAPI.Schema}"."{OrderAPI.Table}"("{OrderAPI.ID.UID}")'),
+            self.ID.Type: pl.Enum([e.name for e in PositionType]),
+            self.ID.Direction: pl.Enum([e.name for e in Direction]),
             self.ID.Volume: pl.Float64(),
             self.ID.Quantity: pl.Float64(),
             self.ID.EntryTimestamp: pl.Datetime(),
@@ -110,8 +118,13 @@ class PositionAPI(DatapointAPI):
             self.ID.UsedMargin: pl.Float64(),
             self.ID.EntryBalance: pl.Float64(),
             self.ID.MidBalance: pl.Float64(),
-            **super().Structure
+            self.ID.Label: pl.String(),
+            self.ID.Comment: pl.String(),
         }
+        for k, v in s.items():
+            if k not in cols:
+                cols[k] = v
+        return cols
 
     def __post_init__(self,
                       db: DatabaseAPI | None,
@@ -119,6 +132,8 @@ class PositionAPI(DatapointAPI):
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
+                      type: PositionType | str | None,
+                      direction: Direction | str | None,
                       security: int | SecurityAPI | None,
                       entry_timestamp: datetime | TimestampAPI | None,
                       entry_price: float | PriceAPI | None,
@@ -136,8 +151,11 @@ class PositionAPI(DatapointAPI):
                       swap_pnl: float | PnLAPI | None,
                       net_pnl: float | PnLAPI | None,
                       entry_balance: float | None,
-                      contract: ContractAPI | None) -> None:
+                      order: int | OrderAPI | None) -> None:
         from Library.Universe.Security import SecurityAPI
+        from Library.Portfolio.Order import OrderAPI
+        type = MISSING if isinstance(type, property) else type
+        direction = MISSING if isinstance(direction, property) else direction
         security = MISSING if isinstance(security, property) else security
         entry_timestamp = MISSING if isinstance(entry_timestamp, property) else entry_timestamp
         entry_price = MISSING if isinstance(entry_price, property) else entry_price
@@ -155,13 +173,18 @@ class PositionAPI(DatapointAPI):
         swap_pnl = MISSING if isinstance(swap_pnl, property) else swap_pnl
         net_pnl = MISSING if isinstance(net_pnl, property) else net_pnl
         entry_balance = MISSING if isinstance(entry_balance, property) else entry_balance
-        contract = MISSING if isinstance(contract, property) else contract
-        self.PositionType = as_enum(PositionType, self.PositionType)
-        self.TradeType = as_enum(TradeType, self.TradeType)
+        order = MISSING if isinstance(order, property) else order
+
+        self._type_ = as_enum(PositionType, type) if type is not MISSING else None
+        self._direction_ = as_enum(Direction, direction) if direction is not MISSING else None
+
         if isinstance(security, SecurityAPI): self._security_ = security
         elif security is not MISSING and security is not None:
             self._security_ = SecurityAPI(UID=security, db=db, autoload=True)
-        if contract is not MISSING: self._contract_ = contract
+        order = coerce(order)
+        if isinstance(order, OrderAPI): self._order_ = order
+        elif order is not MISSING and order is not None:
+            self._order_ = OrderAPI(UID=order, db=db, autoload=True)
         self._entry_balance_ = entry_balance if entry_balance is not MISSING else None
         if isinstance(entry_timestamp, TimestampAPI): self._entry_timestamp_ = entry_timestamp
         elif entry_timestamp is not MISSING and entry_timestamp is not None:
@@ -187,8 +210,8 @@ class PositionAPI(DatapointAPI):
     def _pull_(self, overload: bool) -> dict | None:
         row = super()._pull_(overload=overload)
         if row:
-            self.PositionType = as_enum(PositionType, self.PositionType)
-            self.TradeType = as_enum(TradeType, self.TradeType)
+            self._type_ = as_enum(PositionType, row.get(self.ID.Type))
+            self._direction_ = as_enum(Direction, row.get(self.ID.Direction))
         return row
 
     @staticmethod
@@ -203,18 +226,35 @@ class PositionAPI(DatapointAPI):
 
     def _make_price_(self, val: float | PriceAPI | None, reference: float | None) -> PriceAPI | None:
         if isinstance(val, PriceAPI):
-            if val.Contract is None: val.Contract = self._contract_
+            if val.Contract is None: val.Contract = self._security_.Contract if self._security_ else None
             if val.Reference is None: val.Reference = reference
             return val
         if val is MISSING or val is None: return None
-        return PriceAPI(Price=val, Reference=reference, Contract=self._contract_)
+        return PriceAPI(Price=val, Reference=reference, Contract=self._security_.Contract if self._security_ else None)
 
-    def _make_pnl_(self, val: float | PnLAPI | None, reference: float | None) -> PnLAPI | None:
+    @staticmethod
+    def _make_pnl_(val: float | PnLAPI | None, reference: float | None) -> PnLAPI | None:
         if isinstance(val, PnLAPI):
             if val.Reference is None: val.Reference = reference
             return val
         if val is MISSING or val is None: return None
         return PnLAPI(PnL=val, Reference=reference)
+
+    @property
+    @overridefield
+    def Type(self) -> PositionType | None:
+        return self._type_
+    @Type.setter
+    def Type(self, val: PositionType | str | None) -> None:
+        self._type_ = as_enum(PositionType, val)
+
+    @property
+    @overridefield
+    def Direction(self) -> Direction | None:
+        return self._direction_
+    @Direction.setter
+    def Direction(self, val: Direction | str | None) -> None:
+        self._direction_ = as_enum(Direction, val)
 
     @property
     @overridefield
@@ -249,7 +289,7 @@ class PositionAPI(DatapointAPI):
             self._entry_price_.Price = price
             self._entry_price_.Reference = price
         else:
-            self._entry_price_ = PriceAPI(Price=price, Reference=price, Contract=self._contract_)
+            self._entry_price_ = PriceAPI(Price=price, Reference=price, Contract=self._security_.Contract if self._security_ else None)
         for backing in (self._stop_loss_price_, self._take_profit_price_, self._max_run_up_price_, self._max_draw_down_price_, self._exit_price_):
             if backing: backing.Reference = price
 
@@ -300,7 +340,7 @@ class PositionAPI(DatapointAPI):
             backing.Price = val
             return backing
         ref = self._entry_price_.Price if self._entry_price_ else val
-        return PriceAPI(Price=val, Reference=ref, Contract=self._contract_)
+        return PriceAPI(Price=val, Reference=ref, Contract=self._security_.Contract if self._security_ else None)
 
     @property
     @overridefield
@@ -385,14 +425,11 @@ class PositionAPI(DatapointAPI):
             if backing: backing.Reference = val
 
     @property
-    def Direction(self) -> TradeType | None:
-        return self.TradeType if isinstance(self.TradeType, TradeType) else None
-    @property
     def IsLong(self) -> bool:
-        return self.TradeType == TradeType.Buy
+        return self._direction_ == Direction.Buy
     @property
     def IsShort(self) -> bool:
-        return self.TradeType == TradeType.Sell
+        return self._direction_ == Direction.Sell
     @property
     def RiskReward(self) -> float | None:
         if self._entry_price_ is None or self._stop_loss_price_ is None or self._take_profit_price_ is None: return None
@@ -449,10 +486,10 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Contract(self) -> ContractAPI | None:
-        return self._contract_
-    @Contract.setter
-    def Contract(self, val: ContractAPI | None) -> None:
-        self._contract_ = val
-        for backing in (self._entry_price_, self._stop_loss_price_, self._take_profit_price_, self._max_run_up_price_, self._max_draw_down_price_, self._exit_price_):
-            if backing: backing.Contract = self._contract_
+    def Order(self) -> OrderAPI | None:
+        return self._order_
+    @Order.setter
+    def Order(self, val: int | OrderAPI | None) -> None:
+        from Library.Portfolio.Order import OrderAPI
+        if isinstance(val, OrderAPI): self._order_ = val
+        elif val is not None: self._order_ = OrderAPI(UID=val, db=self._db_, autoload=True)
