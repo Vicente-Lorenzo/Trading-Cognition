@@ -5,7 +5,7 @@ from enum import Enum
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
-from Library.Database.Database import PrimaryKey, ForeignKey, DatabaseAPI
+from Library.Database.Database import PrimaryKey, ForeignKey
 from Library.Database.Datapoint import DatapointAPI
 from Library.Database.Dataclass import overridefield, coerce
 from Library.Database.Enumeration import as_enum
@@ -133,9 +133,9 @@ class AccountAPI(DatapointAPI):
         return self.Equity - self.Balance
     @property
     def UnrealizedReturn(self) -> float | None:
-        upnl = self.UnrealizedPnL
-        if upnl is None or not self.Balance: return None
-        return upnl / self.Balance
+        pnl = self.UnrealizedPnL
+        if pnl is None or not self.Balance: return None
+        return pnl / self.Balance
     @property
     def MarginRatio(self) -> float | None:
         if not self.Equity or self.MarginUsed is None: return None
