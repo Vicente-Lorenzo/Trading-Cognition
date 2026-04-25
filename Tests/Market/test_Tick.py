@@ -50,7 +50,7 @@ def test_tick_db_operations(db):
     contract = ContractAPI(Ticker="EURUSD", Provider="TestProv", Type=ContractType.Spot, db=db, migrate=True)
     contract.save(by="Tester")
     
-    sec = SecurityAPI(UID=1, Provider="TestProv", Category="Forex", Ticker="EURUSD", Contract=ContractType.Spot, db=db, migrate=True)
+    sec = SecurityAPI(UID=1, Provider="TestProv", Category="Forex", Ticker="EURUSD", Contract=ContractType.Spot, db=db, migrate=True, autoload=True)
     sec.save(by="Tester")
     
     now = datetime(2023, 1, 1, 12, 0, 0)

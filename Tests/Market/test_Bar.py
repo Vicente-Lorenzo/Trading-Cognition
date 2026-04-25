@@ -23,7 +23,7 @@ def test_bar_initialization(db):
     tf = TimeframeAPI(UID="M1", db=db)
     tf.save(by="test")
 
-    sec = SecurityAPI(Ticker="EURUSD", Provider="Pepperstone (cTrader)", Contract=ContractType.Spot, db=db, migrate=True)
+    sec = SecurityAPI(Ticker="EURUSD", Provider="Pepperstone (cTrader)", Contract=ContractType.Spot, db=db, migrate=True, autoload=True)
     sec.save(by="test")
     dt = datetime(2023, 1, 1, 12, 0, 0)
     

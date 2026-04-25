@@ -17,6 +17,8 @@ def test_portfolio_initialization(db):
     db.migrate(schema=UniverseAPI.Schema, table=ContractAPI.Table, structure=ContractAPI(db=db).Structure)
     db.migrate(schema=SecurityAPI.Schema, table=SecurityAPI.Table, structure=SecurityAPI(db=db).Structure)
     db.migrate(schema=AccountAPI.Schema, table=AccountAPI.Table, structure=AccountAPI(db=db).Structure)
+    from Library.Portfolio.Order import OrderAPI
+    db.migrate(schema=OrderAPI.Schema, table=OrderAPI.Table, structure=OrderAPI(db=db).Structure)
     db.migrate(schema=PositionAPI.Schema, table=PositionAPI.Table, structure=PositionAPI(db=db).Structure)
     db.migrate(schema=TradeAPI.Schema, table=TradeAPI.Table, structure=TradeAPI(db=db).Structure)
 
@@ -65,7 +67,6 @@ def test_portfolio_initialization(db):
         TakeProfitPrice=1.0600,
         UsedMargin=500.0,
         EntryBalance=10000.0,
-        Contract=sec.Contract,
         db=db
     )
     assert pos.UID == 1001
@@ -90,7 +91,6 @@ def test_portfolio_initialization(db):
         CommissionPnL=-5.0,
         EntryBalance=10000.0,
         ExitBalance=10495.0,
-        Contract=sec.Contract,
         db=db
     )
     assert trade.UID == 2001
