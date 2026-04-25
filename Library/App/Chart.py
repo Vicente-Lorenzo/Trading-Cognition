@@ -1,7 +1,7 @@
 import io
 import base64
 from dash import dcc
-from typing import Any
+from typing import Union, Any
 from dataclasses import dataclass, field
 
 from Library.App.Component import ComponentAPI, Component, ImageAPI, IframeAPI
@@ -9,12 +9,12 @@ from Library.App.Component import ComponentAPI, Component, ImageAPI, IframeAPI
 @dataclass(kw_only=True)
 class PlotlyAPI(ComponentAPI):
 
-    classname: str | None = field(default="plotly")
+    classname: Union[str, None] = field(default="plotly")
     builder: type[Component] = field(default=dcc.Graph)
 
     figure: Any = field(default=None)
     config: dict = field(default=None)
-    responsive: bool | str = field(default=True)
+    responsive: Union[bool, str] = field(default=True)
 
     def arguments(self) -> dict:
         kwargs = super().arguments()
@@ -26,7 +26,7 @@ class PlotlyAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class MatplotlibAPI(ImageAPI):
 
-    classname: str | None = field(default="matplotlib")
+    classname: Union[str, None] = field(default="matplotlib")
 
     figure: Any = field(default=None)
 
@@ -51,7 +51,7 @@ class MatplotlibAPI(ImageAPI):
 @dataclass(kw_only=True)
 class BokehAPI(IframeAPI):
 
-    classname: str | None = field(default="bokeh")
+    classname: Union[str, None] = field(default="bokeh")
 
     figure: Any = field(default=None)
 
@@ -69,7 +69,7 @@ class BokehAPI(IframeAPI):
 @dataclass(kw_only=True)
 class AltairAPI(IframeAPI):
 
-    classname: str | None = field(default="altair")
+    classname: Union[str, None] = field(default="altair")
 
     figure: Any = field(default=None)
 
@@ -87,7 +87,7 @@ class AltairAPI(IframeAPI):
 @dataclass(kw_only=True)
 class PanelAPI(IframeAPI):
 
-    classname: str | None = field(default="panel")
+    classname: Union[str, None] = field(default="panel")
 
     figure: Any = field(default=None)
 
@@ -105,7 +105,7 @@ class PanelAPI(IframeAPI):
 @dataclass(kw_only=True)
 class HoloviewsAPI(ComponentAPI):
 
-    classname: str | None = field(default="holoviews")
+    classname: Union[str, None] = field(default="holoviews")
 
     figure: Any = field(default=None)
     config: dict = field(default=None)
@@ -120,7 +120,7 @@ class HoloviewsAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class ChartAPI(ComponentAPI):
 
-    classname: str | None = field(default="chart")
+    classname: Union[str, None] = field(default="chart")
 
     figure: Any = field(default=None)
     config: dict = field(default=None)

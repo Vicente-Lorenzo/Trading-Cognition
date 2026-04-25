@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import Union
 from datetime import datetime
 from calendar import monthrange, isleap
 from dataclasses import dataclass, field
@@ -11,7 +12,7 @@ from Library.Database.Dataclass import DataclassAPI
 class CycleAPI(DataclassAPI):
 
     Value: float = field(init=True, repr=True)
-    Period: int | None = field(default=None, init=True, repr=True)
+    Period: Union[int, None] = field(default=None, init=True, repr=True)
 
     @property
     def UID(self) -> float:
@@ -21,19 +22,19 @@ class CycleAPI(DataclassAPI):
         pass
 
     @property
-    def Normalized(self) -> float | None:
+    def Normalized(self) -> Union[float, None]:
         if not self.Period: return None
         return self.Value / self.Period
     @property
-    def Radian(self) -> float | None:
+    def Radian(self) -> Union[float, None]:
         if not self.Period: return None
         return 2 * math.pi * self.Value / self.Period
     @property
-    def Sin(self) -> float | None:
+    def Sin(self) -> Union[float, None]:
         radian = self.Radian
         return math.sin(radian) if radian is not None else None
     @property
-    def Cos(self) -> float | None:
+    def Cos(self) -> Union[float, None]:
         radian = self.Radian
         return math.cos(radian) if radian is not None else None
 

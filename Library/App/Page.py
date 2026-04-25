@@ -1,4 +1,4 @@
-from typing import Generic
+from typing import Union, Generic
 from typing_extensions import Self
 
 from Library.App import AppType
@@ -8,14 +8,14 @@ from Library.App.Callback import ComponentID, Output, Input, InjectionType, clie
 
 class PageAPI(Generic[AppType]):
 
-    PAGE_ENTER_ASYNC_ID: ComponentID | dict = ComponentID()
-    PAGE_REENTER_ASYNC_ID: ComponentID | dict = ComponentID()
-    PAGE_ROUTE_ASYNC_ID: ComponentID | dict = ComponentID()
-    PAGE_LEAVE_ASYNC_ID: ComponentID | dict = ComponentID()
+    PAGE_ENTER_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    PAGE_REENTER_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    PAGE_ROUTE_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    PAGE_LEAVE_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
 
-    PAGE_MEMORY_STORAGE_ID: ComponentID | dict = ComponentID()
-    PAGE_SESSION_STORAGE_ID: ComponentID | dict = ComponentID()
-    PAGE_LOCAL_STORAGE_ID: ComponentID | dict = ComponentID()
+    PAGE_MEMORY_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
+    PAGE_SESSION_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
+    PAGE_LOCAL_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
 
     def __init__(self, *,
                  app: AppType,
@@ -25,9 +25,9 @@ class PageAPI(Generic[AppType]):
                  redirect: str = None,
                  button: str = None,
                  description: str = None,
-                 content: Component | list[Component] = None,
-                 sidebar: Component | list[Component] = None,
-                 navigation: Component | list[Component] = None,
+                 content: Union[Component, list[Component]] = None,
+                 sidebar: Union[Component, list[Component]] = None,
+                 navigation: Union[Component, list[Component]] = None,
                  add_backward_parent: bool = True,
                  add_backward_children: bool = False,
                  add_current_parent: bool = False,
@@ -57,13 +57,13 @@ class PageAPI(Generic[AppType]):
         self._content_: list[Component] = self.normalize(content)
         self._navigation_: list[Component] = self.normalize(navigation)
 
-        self._parent_: PageAPI | None = None
+        self._parent_: Union[PageAPI, None] = None
         self._children_: list[PageAPI] = []
 
         self._initialized_: bool = False
 
     @staticmethod
-    def normalize(element: Component | list[Component]) -> list[Component]:
+    def normalize(element: Union[Component, list[Component]]) -> list[Component]:
         if element is None: return []
         return [element] if isinstance(element, Component) else list(element)
 
@@ -240,19 +240,19 @@ class PageAPI(Generic[AppType]):
         """
         pass
 
-    def content(self) -> Component | list[Component]:
+    def content(self) -> Union[Component, list[Component]]:
         """
         Override this method to provide the page content.
         """
         return self.normalize(self.app.GLOBAL_NOT_INDEXED_LAYOUT)
 
-    def sidebar(self) -> Component | list[Component]:
+    def sidebar(self) -> Union[Component, list[Component]]:
         """
         Override this method to provide the page sidebar.
         """
         return self.normalize(self.app.GLOBAL_NOT_INDEXED_LAYOUT)
 
-    def navigation(self) -> Component | list[Component]:
+    def navigation(self) -> Union[Component, list[Component]]:
         """
         Override this method to provide the page navigation.
         """

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Union
 
 import threading
 
@@ -20,10 +21,10 @@ class SpotwareAPI(ServiceAPI):
     def __init__(self, *,
                  client_id: str,
                  client_secret: str,
-                 access_token: str | None = None,
-                 account_id: int | None = None,
+                 access_token: Union[str, None] = None,
+                 account_id: Union[int, None] = None,
                  environment: str = "demo",
-                 host: str | None = None,
+                 host: Union[str, None] = None,
                  port: int = 5035,
                  timeout: int = 10,
                  legacy: bool = False) -> None:
@@ -43,8 +44,8 @@ class SpotwareAPI(ServiceAPI):
 
         self._client_id_: str = client_id
         self._client_secret_: str = client_secret
-        self._access_token_: str | None = access_token
-        self._account_id_: int | None = account_id
+        self._access_token_: Union[str, None] = access_token
+        self._account_id_: Union[int, None] = account_id
         self._host_: str = host or self._HOSTS_.get(str(environment).lower(), environment)
         self._port_: int = port
         self._timeout_: int = timeout
@@ -52,8 +53,8 @@ class SpotwareAPI(ServiceAPI):
         self._reactor_ = None
         self._reactor_thread_ = None
         self._connection_ = None
-        self._connected_event_: threading.Event | None = None
-        self._disconnected_event_: threading.Event | None = None
+        self._connected_event_: Union[threading.Event, None] = None
+        self._disconnected_event_: Union[threading.Event, None] = None
         self._app_authed_: bool = False
         self._account_authed_: bool = False
         self._subscribers_: list = []
@@ -105,7 +106,7 @@ class SpotwareAPI(ServiceAPI):
             self._send_(req)
             self._account_authed_ = True
 
-    def _send_(self, request, timeout: int | None = None):
+    def _send_(self, request, timeout: Union[int, None] = None):
         """
         Sends a request and returns the extracted response payload.
         :param request: Protobuf request message.

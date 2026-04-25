@@ -1,4 +1,5 @@
 import math
+from typing import Union
 
 from Library.Database.Dataframe import pl
 from Library.Database import DatabaseAPI
@@ -31,13 +32,13 @@ class AnalystAPI:
             result = result.hstack(indicator.data())
         return result
 
-    def head(self, n: int | None = None) -> pl.DataFrame:
+    def head(self, n: Union[int, None] = None) -> pl.DataFrame:
         return self.data().head(n)
 
-    def tail(self, n: int | None = None) -> pl.DataFrame:
+    def tail(self, n: Union[int, None] = None) -> pl.DataFrame:
         return self.data().tail(n)
 
-    def init_market_data(self, data: pl.DataFrame | list[BarAPI]) -> None:
+    def init_market_data(self, data: Union[pl.DataFrame, list[BarAPI]]) -> None:
         data_df = DatabaseAPI.format_market_data(data)
         self.Market.init_data(data_df)
         for indicator in self._indicators:

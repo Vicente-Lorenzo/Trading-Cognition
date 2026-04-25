@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import Union
 from dataclasses import dataclass, field
 
 from Library.Database.Dataclass import DataclassAPI
@@ -10,7 +11,7 @@ from Library.Market.Price import Direction
 class PnLAPI(DataclassAPI):
 
     PnL: float = field(init=True, repr=True)
-    Reference: float | None = field(default=None, init=True, repr=True)
+    Reference: Union[float, None] = field(default=None, init=True, repr=True)
 
     @property
     def UID(self) -> float:
@@ -23,23 +24,23 @@ class PnLAPI(DataclassAPI):
     def Direction(self) -> Direction:
         return Direction.Buy if self.PnL > 0 else Direction.Sell if self.PnL < 0 else Direction.Neutral
     @property
-    def Return(self) -> float | None:
+    def Return(self) -> Union[float, None]:
         if not self.Reference: return None
         return self.PnL / self.Reference
     @property
-    def AbsoluteReturn(self) -> float | None:
+    def AbsoluteReturn(self) -> Union[float, None]:
         ret = self.Return
         return abs(ret) if ret is not None else None
     @property
-    def Percentage(self) -> float | None:
+    def Percentage(self) -> Union[float, None]:
         ret = self.Return
         return ret * 100.0 if ret is not None else None
     @property
-    def LogReturn(self) -> float | None:
+    def LogReturn(self) -> Union[float, None]:
         ret = self.Return
         if ret is None or ret <= -1.0: return None
         return math.log1p(ret)
     @property
-    def AbsoluteLogReturn(self) -> float | None:
+    def AbsoluteLogReturn(self) -> Union[float, None]:
         lr = self.LogReturn
         return abs(lr) if lr is not None else None

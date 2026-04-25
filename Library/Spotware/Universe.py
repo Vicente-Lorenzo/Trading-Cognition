@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Database.Dataframe import pd, pl
 from Library.Utility.Service import ServiceAPI
 from Library.Utility.Typing import MISSING, Missing
@@ -6,7 +7,7 @@ class UniverseAPI(ServiceAPI):
 
     def tickers(self,
                 archived: bool = False,
-                legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+                legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOASymbolsListReq",
@@ -42,8 +43,8 @@ class UniverseAPI(ServiceAPI):
         return df
 
     def ticker(self,
-               ids: int | list[int],
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               ids: Union[int, list[int]],
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         from ctrader_open_api import Protobuf
         ids_list = self._api_.flatten(ids)
         def _fetch_():
@@ -95,7 +96,7 @@ class UniverseAPI(ServiceAPI):
         self._log_.info(lambda: f"Ticker Operation: Fetched {len(df)} ticker details ({timer.result()})")
         return df
 
-    def assets(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def assets(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAAssetListReq",
@@ -112,7 +113,7 @@ class UniverseAPI(ServiceAPI):
         self._log_.info(lambda: f"Assets Operation: Fetched {len(df)} assets ({timer.result()})")
         return df
 
-    def classes(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def classes(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAAssetClassListReq",
@@ -127,7 +128,7 @@ class UniverseAPI(ServiceAPI):
         self._log_.info(lambda: f"Classes Operation: Fetched {len(df)} asset classes ({timer.result()})")
         return df
 
-    def categories(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def categories(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOASymbolCategoryListReq",

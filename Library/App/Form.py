@@ -1,3 +1,4 @@
+from typing import Union
 from Library.App import AppType
 from Library.App.Page import PageAPI
 from Library.App.Callback import ComponentID
@@ -5,13 +6,13 @@ from Library.App.Component import Component, IconAPI, TextAPI, MarkdownAPI, Butt
 
 class FormAPI(PageAPI[AppType]):
 
-    FORM_BACK_PAGINATOR_ID: ComponentID | dict = ComponentID()
-    FORM_BACK_INTERNAL_ID: ComponentID | dict = ComponentID()
-    FORM_BACK_EXTERNAL_ID: ComponentID | dict = ComponentID()
-    FORM_ACTION_BUTTON_ID: ComponentID | dict = ComponentID()
-    FORM_NEXT_PAGINATOR_ID: ComponentID | dict = ComponentID()
-    FORM_NEXT_INTERNAL_ID: ComponentID | dict = ComponentID()
-    FORM_NEXT_EXTERNAL_ID: ComponentID | dict = ComponentID()
+    FORM_BACK_PAGINATOR_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_BACK_INTERNAL_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_BACK_EXTERNAL_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_ACTION_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_NEXT_PAGINATOR_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_NEXT_INTERNAL_ID: Union[ComponentID, dict] = ComponentID()
+    FORM_NEXT_EXTERNAL_ID: Union[ComponentID, dict] = ComponentID()
 
     def __init__(self, *,
                  app: AppType,
@@ -21,9 +22,9 @@ class FormAPI(PageAPI[AppType]):
                  redirect: str = None,
                  button: str = None,
                  description: str = None,
-                 content: Component | list[Component] = None,
-                 sidebar: Component | list[Component] = None,
-                 navigation: Component | list[Component] = None,
+                 content: Union[Component, list[Component]] = None,
+                 sidebar: Union[Component, list[Component]] = None,
+                 navigation: Union[Component, list[Component]] = None,
                  add_backward_parent: bool = True,
                  add_backward_children: bool = False,
                  add_current_parent: bool = False,
@@ -31,9 +32,9 @@ class FormAPI(PageAPI[AppType]):
                  add_forward_parent: bool = False,
                  add_forward_children: bool = True,
                  add_step_label: str = None,
-                 add_back_button: bool | str = False,
+                 add_back_button: Union[bool, str] = False,
                  add_action_button: str = None,
-                 add_next_button: bool | str = False,
+                 add_next_button: Union[bool, str] = False,
                  back_button_label: str = "Back",
                  next_button_label: str = "Next") -> None:
 
@@ -57,9 +58,9 @@ class FormAPI(PageAPI[AppType]):
         )
 
         self._add_step_label_: str = add_step_label
-        self._add_back_button_: str | bool = add_back_button
+        self._add_back_button_: Union[str, bool] = add_back_button
         self._add_action_button_: str = add_action_button
-        self._add_next_button_: str | bool = add_next_button
+        self._add_next_button_: Union[str, bool] = add_next_button
         self._back_button_label_: str = back_button_label
         self._next_button_label_: str = next_button_label
 

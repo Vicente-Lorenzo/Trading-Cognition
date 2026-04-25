@@ -1,3 +1,4 @@
+from typing import Union
 from collections.abc import Sequence
 from datetime import datetime
 
@@ -15,17 +16,17 @@ class ExecutionAPI(ServiceAPI):
                            "IMMEDIATE_OR_CANCEL": 3, "FILL_OR_KILL": 4, "MARKET_ON_OPEN": 5}
 
     @classmethod
-    def _side_(cls, value: str | int) -> int:
+    def _side_(cls, value: Union[str, int]) -> int:
         if isinstance(value, int): return value
         return cls._SIDE_MAP_[str(value).upper()]
 
     @classmethod
-    def _order_type_(cls, value: str | int) -> int:
+    def _order_type_(cls, value: Union[str, int]) -> int:
         if isinstance(value, int): return value
         return cls._ORDER_TYPE_MAP_[str(value).upper()]
 
     @classmethod
-    def _tif_(cls, value: str | int | None) -> int | None:
+    def _tif_(cls, value: Union[str, int, None]) -> Union[int, None]:
         if value is None: return None
         if isinstance(value, int): return value
         return cls._TIME_IN_FORCE_MAP_[str(value).upper()]
@@ -43,17 +44,17 @@ class ExecutionAPI(ServiceAPI):
         return [{k: (v[i] if cls._is_seq_(v) else v) for k, v in kwargs.items()} for i in range(n)]
 
     def market_order(self,
-                     side: str | int | Sequence[str | int],
-                     symbol: int | Sequence[int],
-                     volume: int | Sequence[int],
-                     stop_loss: float | Sequence[float] | None = None,
-                     take_profit: float | Sequence[float] | None = None,
-                     label: str | Sequence[str] | None = None,
-                     comment: str | Sequence[str] | None = None,
-                     client_order_id: str | Sequence[str] | None = None,
-                     trailing: bool | Sequence[bool] = False,
-                     guaranteed: bool | Sequence[bool] = False,
-                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                     side: Union[str, int, Sequence[str, int]],
+                     symbol: Union[int, Sequence[int]],
+                     volume: Union[int, Sequence[int]],
+                     stop_loss: Union[float, Sequence[float], None] = None,
+                     take_profit: Union[float, Sequence[float], None] = None,
+                     label: Union[str, Sequence[str], None] = None,
+                     comment: Union[str, Sequence[str], None] = None,
+                     client_order_id: Union[str, Sequence[str], None] = None,
+                     trailing: Union[bool, Sequence[bool]] = False,
+                     guaranteed: Union[bool, Sequence[bool]] = False,
+                     legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             side=side,
             symbol=symbol,
@@ -74,16 +75,16 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def market_buy_order(self,
-                         symbol: int | Sequence[int],
-                         volume: int | Sequence[int],
-                         stop_loss: float | Sequence[float] | None = None,
-                         take_profit: float | Sequence[float] | None = None,
-                         label: str | Sequence[str] | None = None,
-                         comment: str | Sequence[str] | None = None,
-                         client_order_id: str | Sequence[str] | None = None,
-                         trailing: bool | Sequence[bool] = False,
-                         guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         symbol: Union[int, Sequence[int]],
+                         volume: Union[int, Sequence[int]],
+                         stop_loss: Union[float, Sequence[float], None] = None,
+                         take_profit: Union[float, Sequence[float], None] = None,
+                         label: Union[str, Sequence[str], None] = None,
+                         comment: Union[str, Sequence[str], None] = None,
+                         client_order_id: Union[str, Sequence[str], None] = None,
+                         trailing: Union[bool, Sequence[bool]] = False,
+                         guaranteed: Union[bool, Sequence[bool]] = False,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.market_order(
             side="BUY",
             symbol=symbol,
@@ -98,16 +99,16 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def market_sell_order(self,
-                          symbol: int | Sequence[int],
-                          volume: int | Sequence[int],
-                          stop_loss: float | Sequence[float] | None = None,
-                          take_profit: float | Sequence[float] | None = None,
-                          label: str | Sequence[str] | None = None,
-                          comment: str | Sequence[str] | None = None,
-                          client_order_id: str | Sequence[str] | None = None,
-                          trailing: bool | Sequence[bool] = False,
-                          guaranteed: bool | Sequence[bool] = False,
-                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                          symbol: Union[int, Sequence[int]],
+                          volume: Union[int, Sequence[int]],
+                          stop_loss: Union[float, Sequence[float], None] = None,
+                          take_profit: Union[float, Sequence[float], None] = None,
+                          label: Union[str, Sequence[str], None] = None,
+                          comment: Union[str, Sequence[str], None] = None,
+                          client_order_id: Union[str, Sequence[str], None] = None,
+                          trailing: Union[bool, Sequence[bool]] = False,
+                          guaranteed: Union[bool, Sequence[bool]] = False,
+                          legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.market_order(
             side="SELL",
             symbol=symbol,
@@ -122,19 +123,19 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def range_order(self,
-                    side: str | int | Sequence[str | int],
-                    symbol: int | Sequence[int],
-                    volume: int | Sequence[int],
-                    base_price: float | Sequence[float],
-                    slippage_points: int | Sequence[int],
-                    stop_loss: float | Sequence[float] | None = None,
-                    take_profit: float | Sequence[float] | None = None,
-                    label: str | Sequence[str] | None = None,
-                    comment: str | Sequence[str] | None = None,
-                    client_order_id: str | Sequence[str] | None = None,
-                    trailing: bool | Sequence[bool] = False,
-                    guaranteed: bool | Sequence[bool] = False,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                    side: Union[str, int, Sequence[str, int]],
+                    symbol: Union[int, Sequence[int]],
+                    volume: Union[int, Sequence[int]],
+                    base_price: Union[float, Sequence[float]],
+                    slippage_points: Union[int, Sequence[int]],
+                    stop_loss: Union[float, Sequence[float], None] = None,
+                    take_profit: Union[float, Sequence[float], None] = None,
+                    label: Union[str, Sequence[str], None] = None,
+                    comment: Union[str, Sequence[str], None] = None,
+                    client_order_id: Union[str, Sequence[str], None] = None,
+                    trailing: Union[bool, Sequence[bool]] = False,
+                    guaranteed: Union[bool, Sequence[bool]] = False,
+                    legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             side=side,
             symbol=symbol,
@@ -157,18 +158,18 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def range_buy_order(self,
-                        symbol: int | Sequence[int],
-                        volume: int | Sequence[int],
-                        base_price: float | Sequence[float],
-                        slippage_points: int | Sequence[int],
-                        stop_loss: float | Sequence[float] | None = None,
-                        take_profit: float | Sequence[float] | None = None,
-                        label: str | Sequence[str] | None = None,
-                        comment: str | Sequence[str] | None = None,
-                        client_order_id: str | Sequence[str] | None = None,
-                        trailing: bool | Sequence[bool] = False,
-                        guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                        symbol: Union[int, Sequence[int]],
+                        volume: Union[int, Sequence[int]],
+                        base_price: Union[float, Sequence[float]],
+                        slippage_points: Union[int, Sequence[int]],
+                        stop_loss: Union[float, Sequence[float], None] = None,
+                        take_profit: Union[float, Sequence[float], None] = None,
+                        label: Union[str, Sequence[str], None] = None,
+                        comment: Union[str, Sequence[str], None] = None,
+                        client_order_id: Union[str, Sequence[str], None] = None,
+                        trailing: Union[bool, Sequence[bool]] = False,
+                        guaranteed: Union[bool, Sequence[bool]] = False,
+                        legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.range_order(
             side="BUY",
             symbol=symbol,
@@ -185,18 +186,18 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def range_sell_order(self,
-                         symbol: int | Sequence[int],
-                         volume: int | Sequence[int],
-                         base_price: float | Sequence[float],
-                         slippage_points: int | Sequence[int],
-                         stop_loss: float | Sequence[float] | None = None,
-                         take_profit: float | Sequence[float] | None = None,
-                         label: str | Sequence[str] | None = None,
-                         comment: str | Sequence[str] | None = None,
-                         client_order_id: str | Sequence[str] | None = None,
-                         trailing: bool | Sequence[bool] = False,
-                         guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         symbol: Union[int, Sequence[int]],
+                         volume: Union[int, Sequence[int]],
+                         base_price: Union[float, Sequence[float]],
+                         slippage_points: Union[int, Sequence[int]],
+                         stop_loss: Union[float, Sequence[float], None] = None,
+                         take_profit: Union[float, Sequence[float], None] = None,
+                         label: Union[str, Sequence[str], None] = None,
+                         comment: Union[str, Sequence[str], None] = None,
+                         client_order_id: Union[str, Sequence[str], None] = None,
+                         trailing: Union[bool, Sequence[bool]] = False,
+                         guaranteed: Union[bool, Sequence[bool]] = False,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.range_order(
             side="SELL",
             symbol=symbol,
@@ -213,20 +214,20 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def limit_order(self,
-                    side: str | int | Sequence[str | int],
-                    symbol: int | Sequence[int],
-                    volume: int | Sequence[int],
-                    price: float | Sequence[float],
-                    stop_loss: float | Sequence[float] | None = None,
-                    take_profit: float | Sequence[float] | None = None,
-                    time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                    expiration: datetime | Sequence[datetime] | None = None,
-                    label: str | Sequence[str] | None = None,
-                    comment: str | Sequence[str] | None = None,
-                    client_order_id: str | Sequence[str] | None = None,
-                    trailing: bool | Sequence[bool] = False,
-                    guaranteed: bool | Sequence[bool] = False,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                    side: Union[str, int, Sequence[str, int]],
+                    symbol: Union[int, Sequence[int]],
+                    volume: Union[int, Sequence[int]],
+                    price: Union[float, Sequence[float]],
+                    stop_loss: Union[float, Sequence[float], None] = None,
+                    take_profit: Union[float, Sequence[float], None] = None,
+                    time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                    expiration: Union[datetime, Sequence[datetime], None] = None,
+                    label: Union[str, Sequence[str], None] = None,
+                    comment: Union[str, Sequence[str], None] = None,
+                    client_order_id: Union[str, Sequence[str], None] = None,
+                    trailing: Union[bool, Sequence[bool]] = False,
+                    guaranteed: Union[bool, Sequence[bool]] = False,
+                    legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             side=side,
             symbol=symbol,
@@ -250,19 +251,19 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def limit_buy_order(self,
-                        symbol: int | Sequence[int],
-                        volume: int | Sequence[int],
-                        price: float | Sequence[float],
-                        stop_loss: float | Sequence[float] | None = None,
-                        take_profit: float | Sequence[float] | None = None,
-                        time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                        expiration: datetime | Sequence[datetime] | None = None,
-                        label: str | Sequence[str] | None = None,
-                        comment: str | Sequence[str] | None = None,
-                        client_order_id: str | Sequence[str] | None = None,
-                        trailing: bool | Sequence[bool] = False,
-                        guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                        symbol: Union[int, Sequence[int]],
+                        volume: Union[int, Sequence[int]],
+                        price: Union[float, Sequence[float]],
+                        stop_loss: Union[float, Sequence[float], None] = None,
+                        take_profit: Union[float, Sequence[float], None] = None,
+                        time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                        expiration: Union[datetime, Sequence[datetime], None] = None,
+                        label: Union[str, Sequence[str], None] = None,
+                        comment: Union[str, Sequence[str], None] = None,
+                        client_order_id: Union[str, Sequence[str], None] = None,
+                        trailing: Union[bool, Sequence[bool]] = False,
+                        guaranteed: Union[bool, Sequence[bool]] = False,
+                        legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.limit_order(
             side="BUY",
             symbol=symbol,
@@ -280,19 +281,19 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def limit_sell_order(self,
-                         symbol: int | Sequence[int],
-                         volume: int | Sequence[int],
-                         price: float | Sequence[float],
-                         stop_loss: float | Sequence[float] | None = None,
-                         take_profit: float | Sequence[float] | None = None,
-                         time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                         expiration: datetime | Sequence[datetime] | None = None,
-                         label: str | Sequence[str] | None = None,
-                         comment: str | Sequence[str] | None = None,
-                         client_order_id: str | Sequence[str] | None = None,
-                         trailing: bool | Sequence[bool] = False,
-                         guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         symbol: Union[int, Sequence[int]],
+                         volume: Union[int, Sequence[int]],
+                         price: Union[float, Sequence[float]],
+                         stop_loss: Union[float, Sequence[float], None] = None,
+                         take_profit: Union[float, Sequence[float], None] = None,
+                         time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                         expiration: Union[datetime, Sequence[datetime], None] = None,
+                         label: Union[str, Sequence[str], None] = None,
+                         comment: Union[str, Sequence[str], None] = None,
+                         client_order_id: Union[str, Sequence[str], None] = None,
+                         trailing: Union[bool, Sequence[bool]] = False,
+                         guaranteed: Union[bool, Sequence[bool]] = False,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.limit_order(
             side="SELL",
             symbol=symbol,
@@ -310,21 +311,21 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def stop_order(self,
-                   side: str | int | Sequence[str | int],
-                   symbol: int | Sequence[int],
-                   volume: int | Sequence[int],
-                   price: float | Sequence[float],
-                   stop_loss: float | Sequence[float] | None = None,
-                   take_profit: float | Sequence[float] | None = None,
-                   time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                   expiration: datetime | Sequence[datetime] | None = None,
-                   slippage_points: int | Sequence[int] | None = None,
-                   label: str | Sequence[str] | None = None,
-                   comment: str | Sequence[str] | None = None,
-                   client_order_id: str | Sequence[str] | None = None,
-                   trailing: bool | Sequence[bool] = False,
-                   guaranteed: bool | Sequence[bool] = False,
-                   legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                   side: Union[str, int, Sequence[str, int]],
+                   symbol: Union[int, Sequence[int]],
+                   volume: Union[int, Sequence[int]],
+                   price: Union[float, Sequence[float]],
+                   stop_loss: Union[float, Sequence[float], None] = None,
+                   take_profit: Union[float, Sequence[float], None] = None,
+                   time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                   expiration: Union[datetime, Sequence[datetime], None] = None,
+                   slippage_points: Union[int, Sequence[int], None] = None,
+                   label: Union[str, Sequence[str], None] = None,
+                   comment: Union[str, Sequence[str], None] = None,
+                   client_order_id: Union[str, Sequence[str], None] = None,
+                   trailing: Union[bool, Sequence[bool]] = False,
+                   guaranteed: Union[bool, Sequence[bool]] = False,
+                   legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             side=side,
             symbol=symbol,
@@ -349,20 +350,20 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def stop_buy_order(self,
-                       symbol: int | Sequence[int],
-                       volume: int | Sequence[int],
-                       price: float | Sequence[float],
-                       stop_loss: float | Sequence[float] | None = None,
-                       take_profit: float | Sequence[float] | None = None,
-                       time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                       expiration: datetime | Sequence[datetime] | None = None,
-                       slippage_points: int | Sequence[int] | None = None,
-                       label: str | Sequence[str] | None = None,
-                       comment: str | Sequence[str] | None = None,
-                       client_order_id: str | Sequence[str] | None = None,
-                       trailing: bool | Sequence[bool] = False,
-                       guaranteed: bool | Sequence[bool] = False,
-                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                       symbol: Union[int, Sequence[int]],
+                       volume: Union[int, Sequence[int]],
+                       price: Union[float, Sequence[float]],
+                       stop_loss: Union[float, Sequence[float], None] = None,
+                       take_profit: Union[float, Sequence[float], None] = None,
+                       time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                       expiration: Union[datetime, Sequence[datetime], None] = None,
+                       slippage_points: Union[int, Sequence[int], None] = None,
+                       label: Union[str, Sequence[str], None] = None,
+                       comment: Union[str, Sequence[str], None] = None,
+                       client_order_id: Union[str, Sequence[str], None] = None,
+                       trailing: Union[bool, Sequence[bool]] = False,
+                       guaranteed: Union[bool, Sequence[bool]] = False,
+                       legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.stop_order(
             side="BUY",
             symbol=symbol,
@@ -381,20 +382,20 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def stop_sell_order(self,
-                        symbol: int | Sequence[int],
-                        volume: int | Sequence[int],
-                        price: float | Sequence[float],
-                        stop_loss: float | Sequence[float] | None = None,
-                        take_profit: float | Sequence[float] | None = None,
-                        time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                        expiration: datetime | Sequence[datetime] | None = None,
-                        slippage_points: int | Sequence[int] | None = None,
-                        label: str | Sequence[str] | None = None,
-                        comment: str | Sequence[str] | None = None,
-                        client_order_id: str | Sequence[str] | None = None,
-                        trailing: bool | Sequence[bool] = False,
-                        guaranteed: bool | Sequence[bool] = False,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                        symbol: Union[int, Sequence[int]],
+                        volume: Union[int, Sequence[int]],
+                        price: Union[float, Sequence[float]],
+                        stop_loss: Union[float, Sequence[float], None] = None,
+                        take_profit: Union[float, Sequence[float], None] = None,
+                        time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                        expiration: Union[datetime, Sequence[datetime], None] = None,
+                        slippage_points: Union[int, Sequence[int], None] = None,
+                        label: Union[str, Sequence[str], None] = None,
+                        comment: Union[str, Sequence[str], None] = None,
+                        client_order_id: Union[str, Sequence[str], None] = None,
+                        trailing: Union[bool, Sequence[bool]] = False,
+                        guaranteed: Union[bool, Sequence[bool]] = False,
+                        legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.stop_order(
             side="SELL",
             symbol=symbol,
@@ -413,21 +414,21 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def stop_limit_order(self,
-                         side: str | int | Sequence[str | int],
-                         symbol: int | Sequence[int],
-                         volume: int | Sequence[int],
-                         stop_price: float | Sequence[float],
-                         limit_price: float | Sequence[float],
-                         stop_loss: float | Sequence[float] | None = None,
-                         take_profit: float | Sequence[float] | None = None,
-                         time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                         expiration: datetime | Sequence[datetime] | None = None,
-                         label: str | Sequence[str] | None = None,
-                         comment: str | Sequence[str] | None = None,
-                         client_order_id: str | Sequence[str] | None = None,
-                         trailing: bool | Sequence[bool] = False,
-                         guaranteed: bool | Sequence[bool] = False,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         side: Union[str, int, Sequence[str, int]],
+                         symbol: Union[int, Sequence[int]],
+                         volume: Union[int, Sequence[int]],
+                         stop_price: Union[float, Sequence[float]],
+                         limit_price: Union[float, Sequence[float]],
+                         stop_loss: Union[float, Sequence[float], None] = None,
+                         take_profit: Union[float, Sequence[float], None] = None,
+                         time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                         expiration: Union[datetime, Sequence[datetime], None] = None,
+                         label: Union[str, Sequence[str], None] = None,
+                         comment: Union[str, Sequence[str], None] = None,
+                         client_order_id: Union[str, Sequence[str], None] = None,
+                         trailing: Union[bool, Sequence[bool]] = False,
+                         guaranteed: Union[bool, Sequence[bool]] = False,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             side=side,
             symbol=symbol,
@@ -452,20 +453,20 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def stop_limit_buy_order(self,
-                             symbol: int | Sequence[int],
-                             volume: int | Sequence[int],
-                             stop_price: float | Sequence[float],
-                             limit_price: float | Sequence[float],
-                             stop_loss: float | Sequence[float] | None = None,
-                             take_profit: float | Sequence[float] | None = None,
-                             time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                             expiration: datetime | Sequence[datetime] | None = None,
-                             label: str | Sequence[str] | None = None,
-                             comment: str | Sequence[str] | None = None,
-                             client_order_id: str | Sequence[str] | None = None,
-                             trailing: bool | Sequence[bool] = False,
-                             guaranteed: bool | Sequence[bool] = False,
-                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                             symbol: Union[int, Sequence[int]],
+                             volume: Union[int, Sequence[int]],
+                             stop_price: Union[float, Sequence[float]],
+                             limit_price: Union[float, Sequence[float]],
+                             stop_loss: Union[float, Sequence[float], None] = None,
+                             take_profit: Union[float, Sequence[float], None] = None,
+                             time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                             expiration: Union[datetime, Sequence[datetime], None] = None,
+                             label: Union[str, Sequence[str], None] = None,
+                             comment: Union[str, Sequence[str], None] = None,
+                             client_order_id: Union[str, Sequence[str], None] = None,
+                             trailing: Union[bool, Sequence[bool]] = False,
+                             guaranteed: Union[bool, Sequence[bool]] = False,
+                             legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.stop_limit_order(
             side="BUY",
             symbol=symbol,
@@ -484,20 +485,20 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def stop_limit_sell_order(self,
-                              symbol: int | Sequence[int],
-                              volume: int | Sequence[int],
-                              stop_price: float | Sequence[float],
-                              limit_price: float | Sequence[float],
-                              stop_loss: float | Sequence[float] | None = None,
-                              take_profit: float | Sequence[float] | None = None,
-                              time_in_force: str | int | Sequence[str | int] | None = "GTC",
-                              expiration: datetime | Sequence[datetime] | None = None,
-                              label: str | Sequence[str] | None = None,
-                              comment: str | Sequence[str] | None = None,
-                              client_order_id: str | Sequence[str] | None = None,
-                              trailing: bool | Sequence[bool] = False,
-                              guaranteed: bool | Sequence[bool] = False,
-                              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                              symbol: Union[int, Sequence[int]],
+                              volume: Union[int, Sequence[int]],
+                              stop_price: Union[float, Sequence[float]],
+                              limit_price: Union[float, Sequence[float]],
+                              stop_loss: Union[float, Sequence[float], None] = None,
+                              take_profit: Union[float, Sequence[float], None] = None,
+                              time_in_force: Union[str, int, Sequence[str, int], None] = "GTC",
+                              expiration: Union[datetime, Sequence[datetime], None] = None,
+                              label: Union[str, Sequence[str], None] = None,
+                              comment: Union[str, Sequence[str], None] = None,
+                              client_order_id: Union[str, Sequence[str], None] = None,
+                              trailing: Union[bool, Sequence[bool]] = False,
+                              guaranteed: Union[bool, Sequence[bool]] = False,
+                              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.stop_limit_order(
             side="SELL",
             symbol=symbol,
@@ -516,17 +517,17 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def modify_order(self,
-                     order: int | Sequence[int],
-                     volume: int | Sequence[int] | None = None,
-                     limit_price: float | Sequence[float] | None = None,
-                     stop_price: float | Sequence[float] | None = None,
-                     stop_loss: float | Sequence[float] | None = None,
-                     take_profit: float | Sequence[float] | None = None,
-                     expiration: datetime | Sequence[datetime] | None = None,
-                     slippage_points: int | Sequence[int] | None = None,
-                     trailing: bool | Sequence[bool] | None = None,
-                     guaranteed: bool | Sequence[bool] | None = None,
-                     legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                     order: Union[int, Sequence[int]],
+                     volume: Union[int, Sequence[int], None] = None,
+                     limit_price: Union[float, Sequence[float], None] = None,
+                     stop_price: Union[float, Sequence[float], None] = None,
+                     stop_loss: Union[float, Sequence[float], None] = None,
+                     take_profit: Union[float, Sequence[float], None] = None,
+                     expiration: Union[datetime, Sequence[datetime], None] = None,
+                     slippage_points: Union[int, Sequence[int], None] = None,
+                     trailing: Union[bool, Sequence[bool], None] = None,
+                     guaranteed: Union[bool, Sequence[bool], None] = None,
+                     legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             order=order,
             volume=volume,
@@ -547,17 +548,17 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def modify_buy_order(self,
-                         order: int | Sequence[int],
-                         volume: int | Sequence[int] | None = None,
-                         limit_price: float | Sequence[float] | None = None,
-                         stop_price: float | Sequence[float] | None = None,
-                         stop_loss: float | Sequence[float] | None = None,
-                         take_profit: float | Sequence[float] | None = None,
-                         expiration: datetime | Sequence[datetime] | None = None,
-                         slippage_points: int | Sequence[int] | None = None,
-                         trailing: bool | Sequence[bool] | None = None,
-                         guaranteed: bool | Sequence[bool] | None = None,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         order: Union[int, Sequence[int]],
+                         volume: Union[int, Sequence[int], None] = None,
+                         limit_price: Union[float, Sequence[float], None] = None,
+                         stop_price: Union[float, Sequence[float], None] = None,
+                         stop_loss: Union[float, Sequence[float], None] = None,
+                         take_profit: Union[float, Sequence[float], None] = None,
+                         expiration: Union[datetime, Sequence[datetime], None] = None,
+                         slippage_points: Union[int, Sequence[int], None] = None,
+                         trailing: Union[bool, Sequence[bool], None] = None,
+                         guaranteed: Union[bool, Sequence[bool], None] = None,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.modify_order(
             order=order,
             volume=volume,
@@ -572,17 +573,17 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def modify_sell_order(self,
-                          order: int | Sequence[int],
-                          volume: int | Sequence[int] | None = None,
-                          limit_price: float | Sequence[float] | None = None,
-                          stop_price: float | Sequence[float] | None = None,
-                          stop_loss: float | Sequence[float] | None = None,
-                          take_profit: float | Sequence[float] | None = None,
-                          expiration: datetime | Sequence[datetime] | None = None,
-                          slippage_points: int | Sequence[int] | None = None,
-                          trailing: bool | Sequence[bool] | None = None,
-                          guaranteed: bool | Sequence[bool] | None = None,
-                          legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                          order: Union[int, Sequence[int]],
+                          volume: Union[int, Sequence[int], None] = None,
+                          limit_price: Union[float, Sequence[float], None] = None,
+                          stop_price: Union[float, Sequence[float], None] = None,
+                          stop_loss: Union[float, Sequence[float], None] = None,
+                          take_profit: Union[float, Sequence[float], None] = None,
+                          expiration: Union[datetime, Sequence[datetime], None] = None,
+                          slippage_points: Union[int, Sequence[int], None] = None,
+                          trailing: Union[bool, Sequence[bool], None] = None,
+                          guaranteed: Union[bool, Sequence[bool], None] = None,
+                          legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.modify_order(
             order=order,
             volume=volume,
@@ -597,8 +598,8 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def close_order(self,
-                    order: int | Sequence[int] | None = None,
-                    legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                    order: Union[int, Sequence[int], None] = None,
+                    legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         def _fetch_():
             ids = self._resolve_orders_(order)
             rows = [self._close_order_(order=i) for i in ids]
@@ -609,26 +610,26 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def close_buy_order(self,
-                        order: int | Sequence[int] | None = None,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                        order: Union[int, Sequence[int], None] = None,
+                        legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.close_order(
             order=order,
             legacy=legacy)
 
     def close_sell_order(self,
-                         order: int | Sequence[int] | None = None,
-                         legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                         order: Union[int, Sequence[int], None] = None,
+                         legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.close_order(
             order=order,
             legacy=legacy)
 
     def modify_position(self,
-                        position: int | Sequence[int],
-                        stop_loss: float | Sequence[float] | None = None,
-                        take_profit: float | Sequence[float] | None = None,
-                        trailing: bool | Sequence[bool] | None = None,
-                        guaranteed: bool | Sequence[bool] | None = None,
-                        legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                        position: Union[int, Sequence[int]],
+                        stop_loss: Union[float, Sequence[float], None] = None,
+                        take_profit: Union[float, Sequence[float], None] = None,
+                        trailing: Union[bool, Sequence[bool], None] = None,
+                        guaranteed: Union[bool, Sequence[bool], None] = None,
+                        legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         batches = self._broadcast_(
             position=position,
             stop_loss=stop_loss,
@@ -644,12 +645,12 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def modify_buy_position(self,
-                            position: int | Sequence[int],
-                            stop_loss: float | Sequence[float] | None = None,
-                            take_profit: float | Sequence[float] | None = None,
-                            trailing: bool | Sequence[bool] | None = None,
-                            guaranteed: bool | Sequence[bool] | None = None,
-                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                            position: Union[int, Sequence[int]],
+                            stop_loss: Union[float, Sequence[float], None] = None,
+                            take_profit: Union[float, Sequence[float], None] = None,
+                            trailing: Union[bool, Sequence[bool], None] = None,
+                            guaranteed: Union[bool, Sequence[bool], None] = None,
+                            legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.modify_position(
             position=position,
             stop_loss=stop_loss,
@@ -659,12 +660,12 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def modify_sell_position(self,
-                             position: int | Sequence[int],
-                             stop_loss: float | Sequence[float] | None = None,
-                             take_profit: float | Sequence[float] | None = None,
-                             trailing: bool | Sequence[bool] | None = None,
-                             guaranteed: bool | Sequence[bool] | None = None,
-                             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                             position: Union[int, Sequence[int]],
+                             stop_loss: Union[float, Sequence[float], None] = None,
+                             take_profit: Union[float, Sequence[float], None] = None,
+                             trailing: Union[bool, Sequence[bool], None] = None,
+                             guaranteed: Union[bool, Sequence[bool], None] = None,
+                             legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.modify_position(
             position=position,
             stop_loss=stop_loss,
@@ -674,9 +675,9 @@ class ExecutionAPI(ServiceAPI):
             legacy=legacy)
 
     def close_position(self,
-                       position: int | Sequence[int] | None = None,
-                       volume: int | Sequence[int] | None = None,
-                       legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                       position: Union[int, Sequence[int], None] = None,
+                       volume: Union[int, Sequence[int], None] = None,
+                       legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         def _fetch_():
             pairs = self._resolve_positions_(position, volume)
             rows = [self._close_position_(position=i, volume=v) for i, v in pairs]
@@ -687,41 +688,41 @@ class ExecutionAPI(ServiceAPI):
         return result
 
     def close_buy_position(self,
-                           position: int | Sequence[int] | None = None,
-                           volume: int | Sequence[int] | None = None,
-                           legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                           position: Union[int, Sequence[int], None] = None,
+                           volume: Union[int, Sequence[int], None] = None,
+                           legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.close_position(
             position=position,
             volume=volume,
             legacy=legacy)
 
     def close_sell_position(self,
-                            position: int | Sequence[int] | None = None,
-                            volume: int | Sequence[int] | None = None,
-                            legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                            position: Union[int, Sequence[int], None] = None,
+                            volume: Union[int, Sequence[int], None] = None,
+                            legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         return self.close_position(
             position=position,
             volume=volume,
             legacy=legacy)
 
     def _order_(self,
-                order_type: str | int,
-                side: str | int,
+                order_type: Union[str, int],
+                side: Union[str, int],
                 symbol: int,
                 volume: int,
                 *,
-                limit_price: float | None = None,
-                stop_price: float | None = None,
-                base_slippage_price: float | None = None,
-                slippage_points: int | None = None,
-                stop_loss: float | None = None,
-                take_profit: float | None = None,
-                time_in_force: str | int | None = None,
-                expiration: datetime | None = None,
-                label: str | None = None,
-                comment: str | None = None,
-                client_order_id: str | None = None,
-                position_id: int | None = None,
+                limit_price: Union[float, None] = None,
+                stop_price: Union[float, None] = None,
+                base_slippage_price: Union[float, None] = None,
+                slippage_points: Union[int, None] = None,
+                stop_loss: Union[float, None] = None,
+                take_profit: Union[float, None] = None,
+                time_in_force: Union[str, int, None] = None,
+                expiration: Union[datetime, None] = None,
+                label: Union[str, None] = None,
+                comment: Union[str, None] = None,
+                client_order_id: Union[str, None] = None,
+                position_id: Union[int, None] = None,
                 trailing: bool = False,
                 guaranteed: bool = False) -> dict:
         from ctrader_open_api import Protobuf
@@ -754,15 +755,15 @@ class ExecutionAPI(ServiceAPI):
 
     def _modify_order_(self,
                        order: int,
-                       volume: int | None = None,
-                       limit_price: float | None = None,
-                       stop_price: float | None = None,
-                       stop_loss: float | None = None,
-                       take_profit: float | None = None,
-                       expiration: datetime | None = None,
-                       slippage_points: int | None = None,
-                       trailing: bool | None = None,
-                       guaranteed: bool | None = None) -> dict:
+                       volume: Union[int, None] = None,
+                       limit_price: Union[float, None] = None,
+                       stop_price: Union[float, None] = None,
+                       stop_loss: Union[float, None] = None,
+                       take_profit: Union[float, None] = None,
+                       expiration: Union[datetime, None] = None,
+                       slippage_points: Union[int, None] = None,
+                       trailing: Union[bool, None] = None,
+                       guaranteed: Union[bool, None] = None) -> dict:
         from ctrader_open_api import Protobuf
         from Library.Spotware.Market import MarketAPI
         kwargs = {
@@ -784,10 +785,10 @@ class ExecutionAPI(ServiceAPI):
 
     def _modify_position_(self,
                           position: int,
-                          stop_loss: float | None = None,
-                          take_profit: float | None = None,
-                          trailing: bool | None = None,
-                          guaranteed: bool | None = None) -> dict:
+                          stop_loss: Union[float, None] = None,
+                          take_profit: Union[float, None] = None,
+                          trailing: Union[bool, None] = None,
+                          guaranteed: Union[bool, None] = None) -> dict:
         from ctrader_open_api import Protobuf
         kwargs = {
             "ctidTraderAccountId": self._api_._account_id_,
@@ -818,7 +819,7 @@ class ExecutionAPI(ServiceAPI):
         response = self._api_._send_(request)
         return self._execution_(payload=response)
 
-    def _resolve_orders_(self, order: int | Sequence[int] | None) -> list[int]:
+    def _resolve_orders_(self, order: Union[int, Sequence[int], None]) -> list[int]:
         if order is None:
             orders = self._api_.portfolio.orders(legacy=False)
             return [o.OrderID for o in orders] if orders else []
@@ -826,8 +827,8 @@ class ExecutionAPI(ServiceAPI):
         return [int(order)]
 
     def _resolve_positions_(self,
-                            position: int | Sequence[int] | None,
-                            volume: int | Sequence[int] | None) -> list[tuple[int, int]]:
+                            position: Union[int, Sequence[int], None],
+                            volume: Union[int, Sequence[int], None]) -> list[tuple[int, int]]:
         if position is None:
             positions = self._api_.portfolio.positions(legacy=False)
             if not positions: return []

@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta, weekday
 
@@ -12,13 +13,13 @@ class Weekday(Enumeration):
     Saturday = 5
     Sunday = 6
 
-def datetime_to_string(dt: datetime | date | time, fmt: str) -> str:
+def datetime_to_string(dt: Union[datetime, date, time], fmt: str) -> str:
     return dt.strftime(fmt)
 
 def string_to_datetime(date_str: str, fmt_str: str) -> datetime:
     return datetime.strptime(date_str, fmt_str)
 
-def datetime_to_timestamp(dt: datetime | date | time, milliseconds: bool = False) -> float:
+def datetime_to_timestamp(dt: Union[datetime, date, time], milliseconds: bool = False) -> float:
     ts = dt.timestamp()
     return ts * 1000 if milliseconds else ts
 

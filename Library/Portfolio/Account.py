@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
 from enum import Enum
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -35,26 +35,26 @@ class AccountAPI(DatapointAPI):
     Schema: ClassVar[str] = "Portfolio"
     Table: ClassVar[str] = "Account"
 
-    UID: str | None = None
-    Environment: InitVar[Environment | str | None] = field(default=MISSING)
-    AccountType: InitVar[AccountType | str | None] = field(default=MISSING)
-    MarginMode: InitVar[MarginMode | str | None] = field(default=MISSING)
-    Asset: str | None = None
-    Balance: float | None = None
-    Equity: float | None = None
-    Credit: float | None = None
-    Leverage: float | None = None
-    MarginUsed: float | None = None
-    MarginFree: float | None = None
-    MarginLevel: float | None = None
-    MarginStopLevel: float | None = None
+    UID: Union[str, None] = None
+    Environment: InitVar[Union[Environment, str, None]] = field(default=MISSING)
+    AccountType: InitVar[Union[AccountType, str, None]] = field(default=MISSING)
+    MarginMode: InitVar[Union[MarginMode, str, None]] = field(default=MISSING)
+    Asset: Union[str, None] = None
+    Balance: Union[float, None] = None
+    Equity: Union[float, None] = None
+    Credit: Union[float, None] = None
+    Leverage: Union[float, None] = None
+    MarginUsed: Union[float, None] = None
+    MarginFree: Union[float, None] = None
+    MarginLevel: Union[float, None] = None
+    MarginStopLevel: Union[float, None] = None
 
-    Provider: InitVar[str | ProviderAPI | None] = field(default=MISSING)
+    Provider: InitVar[Union[str, ProviderAPI, None]] = field(default=MISSING)
 
-    _environment_: Environment | None = field(default=None, init=False, repr=False)
-    _account_type_: AccountType | None = field(default=None, init=False, repr=False)
-    _margin_mode_: MarginMode | None = field(default=None, init=False, repr=False)
-    _provider_: ProviderAPI | None = field(default=None, init=False, repr=False)
+    _environment_: Union[Environment, None] = field(default=None, init=False, repr=False)
+    _account_type_: Union[AccountType, None] = field(default=None, init=False, repr=False)
+    _margin_mode_: Union[MarginMode, None] = field(default=None, init=False, repr=False)
+    _provider_: Union[ProviderAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Key(self) -> dict:
@@ -82,15 +82,15 @@ class AccountAPI(DatapointAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      environment: Environment | str | None,
-                      account_type: AccountType | str | None,
-                      margin_mode: MarginMode | str | None,
-                      provider: str | ProviderAPI | None) -> None:
+                      environment: Union[Environment, str, None],
+                      account_type: Union[AccountType, str, None],
+                      margin_mode: Union[MarginMode, str, None],
+                      provider: Union[str, ProviderAPI, None]) -> None:
         environment = MISSING if isinstance(environment, property) else environment
         account_type = MISSING if isinstance(account_type, property) else account_type
         margin_mode = MISSING if isinstance(margin_mode, property) else margin_mode
@@ -103,7 +103,7 @@ class AccountAPI(DatapointAPI):
             self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(provider), db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         row = super()._pull_(overload=overload)
         if row:
             self._environment_ = as_enum(Environment, row.get(self.ID.Environment))
@@ -113,34 +113,34 @@ class AccountAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Environment(self) -> Environment | None:
+    def Environment(self) -> Union[Environment, None]:
         return self._environment_
     @Environment.setter
-    def Environment(self, val: Environment | str | None) -> None:
+    def Environment(self, val: Union[Environment, str, None]) -> None:
         self._environment_ = as_enum(Environment, val)
 
     @property
     @overridefield
-    def AccountType(self) -> AccountType | None:
+    def AccountType(self) -> Union[AccountType, None]:
         return self._account_type_
     @AccountType.setter
-    def AccountType(self, val: AccountType | str | None) -> None:
+    def AccountType(self, val: Union[AccountType, str, None]) -> None:
         self._account_type_ = as_enum(AccountType, val)
 
     @property
     @overridefield
-    def MarginMode(self) -> MarginMode | None:
+    def MarginMode(self) -> Union[MarginMode, None]:
         return self._margin_mode_
     @MarginMode.setter
-    def MarginMode(self, val: MarginMode | str | None) -> None:
+    def MarginMode(self, val: Union[MarginMode, str, None]) -> None:
         self._margin_mode_ = as_enum(MarginMode, val)
 
     @property
     @overridefield
-    def Provider(self) -> ProviderAPI | None:
+    def Provider(self) -> Union[ProviderAPI, None]:
         return self._provider_
     @Provider.setter
-    def Provider(self, val: str | ProviderAPI | None) -> None:
+    def Provider(self, val: Union[str, ProviderAPI, None]) -> None:
         if isinstance(val, ProviderAPI): self._provider_ = val
         elif val is not None: self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(val), db=self._db_, autoload=True)
 
@@ -160,23 +160,23 @@ class AccountAPI(DatapointAPI):
     def IsNetted(self) -> bool:
         return self._account_type_ == AccountType.Netted
     @property
-    def UnrealizedPnL(self) -> float | None:
+    def UnrealizedPnL(self) -> Union[float, None]:
         if self.Equity is None or self.Balance is None: return None
         return self.Equity - self.Balance
     @property
-    def UnrealizedReturn(self) -> float | None:
+    def UnrealizedReturn(self) -> Union[float, None]:
         pnl = self.UnrealizedPnL
         if pnl is None or not self.Balance: return None
         return pnl / self.Balance
     @property
-    def MarginRatio(self) -> float | None:
+    def MarginRatio(self) -> Union[float, None]:
         if not self.Equity or self.MarginUsed is None: return None
         return self.MarginUsed / self.Equity
     @property
-    def FreeMarginRatio(self) -> float | None:
+    def FreeMarginRatio(self) -> Union[float, None]:
         if not self.Equity or self.MarginFree is None: return None
         return self.MarginFree / self.Equity
     @property
-    def CreditRatio(self) -> float | None:
+    def CreditRatio(self) -> Union[float, None]:
         if not self.Balance or self.Credit is None: return None
         return self.Credit / self.Balance

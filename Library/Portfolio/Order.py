@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
 from enum import Enum
 from datetime import datetime
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -49,57 +49,57 @@ class OrderAPI(DatapointAPI):
     Schema: ClassVar[str] = "Portfolio"
     Table: ClassVar[str] = "Order"
 
-    UID: int | None = None
-    Direction: InitVar[Direction | str | None] = field(default=MISSING)
-    OrderType: InitVar[OrderType | str | None] = field(default=MISSING)
-    OrderStatus: InitVar[OrderStatus | str | None] = field(default=MISSING)
-    TimeInForce: InitVar[TimeInForce | str | None] = field(default=MISSING)
-    Volume: float | None = None
-    ExecutedVolume: float | None = None
-    RelativeStopLoss: float | None = None
-    RelativeTakeProfit: float | None = None
-    SlippageInPoints: int | None = None
-    ClosingOrder: bool | None = None
-    ClientOrderID: str | None = None
-    IsStopOut: bool | None = None
-    TrailingStopLoss: bool | None = None
-    StopTriggerMethod: int | None = None
-    Label: str | None = None
-    Comment: str | None = None
+    UID: Union[int, None] = None
+    Direction: InitVar[Union[Direction, str, None]] = field(default=MISSING)
+    OrderType: InitVar[Union[OrderType, str, None]] = field(default=MISSING)
+    OrderStatus: InitVar[Union[OrderStatus, str, None]] = field(default=MISSING)
+    TimeInForce: InitVar[Union[TimeInForce, str, None]] = field(default=MISSING)
+    Volume: Union[float, None] = None
+    ExecutedVolume: Union[float, None] = None
+    RelativeStopLoss: Union[float, None] = None
+    RelativeTakeProfit: Union[float, None] = None
+    SlippageInPoints: Union[int, None] = None
+    ClosingOrder: Union[bool, None] = None
+    ClientOrderID: Union[str, None] = None
+    IsStopOut: Union[bool, None] = None
+    TrailingStopLoss: Union[bool, None] = None
+    StopTriggerMethod: Union[int, None] = None
+    Label: Union[str, None] = None
+    Comment: Union[str, None] = None
 
-    Security: InitVar[int | SecurityAPI | None] = field(default=MISSING)
-    Position: InitVar[int | PositionAPI | None] = field(default=MISSING)
+    Security: InitVar[Union[int, SecurityAPI, None]] = field(default=MISSING)
+    Position: InitVar[Union[int, PositionAPI, None]] = field(default=MISSING)
 
-    ExecutionPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    LimitPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    StopPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    StopLossPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    TakeProfitPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    BaseSlippagePrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
+    ExecutionPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    LimitPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    StopPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    StopLossPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    TakeProfitPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    BaseSlippagePrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
 
-    EntryTimestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
-    ExpirationTimestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
-    LastUpdateTimestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
+    EntryTimestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
+    ExpirationTimestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
+    LastUpdateTimestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
 
-    Contract: InitVar[ContractAPI | None] = field(default=MISSING)
+    Contract: InitVar[Union[ContractAPI, None]] = field(default=MISSING)
 
-    _direction_: Direction | None = field(default=None, init=False, repr=False)
-    _order_type_: OrderType | None = field(default=None, init=False, repr=False)
-    _order_status_: OrderStatus | None = field(default=None, init=False, repr=False)
-    _time_in_force_: TimeInForce | None = field(default=None, init=False, repr=False)
+    _direction_: Union[Direction, None] = field(default=None, init=False, repr=False)
+    _order_type_: Union[OrderType, None] = field(default=None, init=False, repr=False)
+    _order_status_: Union[OrderStatus, None] = field(default=None, init=False, repr=False)
+    _time_in_force_: Union[TimeInForce, None] = field(default=None, init=False, repr=False)
 
-    _security_: SecurityAPI | None = field(default=None, init=False, repr=False)
-    _position_: PositionAPI | None = field(default=None, init=False, repr=False)
-    _execution_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _limit_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _stop_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _stop_loss_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _take_profit_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _base_slippage_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _entry_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _expiration_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _last_update_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _contract_: ContractAPI | None = field(default=None, init=False, repr=False)
+    _security_: Union[SecurityAPI, None] = field(default=None, init=False, repr=False)
+    _position_: Union[PositionAPI, None] = field(default=None, init=False, repr=False)
+    _execution_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _limit_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _stop_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _stop_loss_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _take_profit_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _base_slippage_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _entry_timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _expiration_timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _last_update_timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _contract_: Union[ContractAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -137,27 +137,27 @@ class OrderAPI(DatapointAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      direction: Direction | str | None,
-                      order_type: OrderType | str | None,
-                      order_status: OrderStatus | str | None,
-                      time_in_force: TimeInForce | str | None,
-                      security: int | SecurityAPI | None,
-                      position: int | PositionAPI | None,
-                      execution_price: float | PriceAPI | None,
-                      limit_price: float | PriceAPI | None,
-                      stop_price: float | PriceAPI | None,
-                      stop_loss_price: float | PriceAPI | None,
-                      take_profit_price: float | PriceAPI | None,
-                      base_slippage_price: float | PriceAPI | None,
-                      entry_timestamp: datetime | TimestampAPI | None,
-                      expiration_timestamp: datetime | TimestampAPI | None,
-                      last_update_timestamp: datetime | TimestampAPI | None,
-                      contract: ContractAPI | None) -> None:
+                      direction: Union[Direction, str, None],
+                      order_type: Union[OrderType, str, None],
+                      order_status: Union[OrderStatus, str, None],
+                      time_in_force: Union[TimeInForce, str, None],
+                      security: Union[int, SecurityAPI, None],
+                      position: Union[int, PositionAPI, None],
+                      execution_price: Union[float, PriceAPI, None],
+                      limit_price: Union[float, PriceAPI, None],
+                      stop_price: Union[float, PriceAPI, None],
+                      stop_loss_price: Union[float, PriceAPI, None],
+                      take_profit_price: Union[float, PriceAPI, None],
+                      base_slippage_price: Union[float, PriceAPI, None],
+                      entry_timestamp: Union[datetime, TimestampAPI, None],
+                      expiration_timestamp: Union[datetime, TimestampAPI, None],
+                      last_update_timestamp: Union[datetime, TimestampAPI, None],
+                      contract: Union[ContractAPI, None]) -> None:
         from Library.Universe.Security import SecurityAPI
         direction = MISSING if isinstance(direction, property) else direction
         order_type = MISSING if isinstance(order_type, property) else order_type
@@ -201,7 +201,7 @@ class OrderAPI(DatapointAPI):
         self._last_update_timestamp_ = self._make_timestamp_(last_update_timestamp)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         row = super()._pull_(overload=overload)
         if row:
             self._direction_ = as_enum(Direction, row.get(self.ID.Direction))
@@ -211,11 +211,11 @@ class OrderAPI(DatapointAPI):
         return row
 
     @staticmethod
-    def _unwrap_price_(val: float | PriceAPI | None) -> float | None:
+    def _unwrap_price_(val: Union[float, PriceAPI, None]) -> Union[float, None]:
         if isinstance(val, PriceAPI): return val.Price
         return val if val is not MISSING else None
 
-    def _make_price_(self, val: float | PriceAPI | None, reference: float | None) -> PriceAPI | None:
+    def _make_price_(self, val: Union[float, PriceAPI, None], reference: Union[float, None]) -> Union[PriceAPI, None]:
         if isinstance(val, PriceAPI):
             if val.Contract is None: val.Contract = self._contract_
             if val.Reference is None: val.Reference = reference
@@ -224,12 +224,12 @@ class OrderAPI(DatapointAPI):
         return PriceAPI(Price=val, Reference=reference, Contract=self._contract_)
 
     @staticmethod
-    def _make_timestamp_(val: datetime | TimestampAPI | None) -> TimestampAPI | None:
+    def _make_timestamp_(val: Union[datetime, TimestampAPI, None]) -> Union[TimestampAPI, None]:
         if isinstance(val, TimestampAPI): return val
         if val is MISSING or val is None: return None
         return TimestampAPI(DateTime=val)
 
-    def _assign_price_(self, backing: PriceAPI | None, val: float | PriceAPI | None) -> PriceAPI | None:
+    def _assign_price_(self, backing: Union[PriceAPI, None], val: Union[float, PriceAPI, None]) -> Union[PriceAPI, None]:
         if isinstance(val, PriceAPI): return val
         if val is None: return backing
         if backing:
@@ -239,7 +239,7 @@ class OrderAPI(DatapointAPI):
         return PriceAPI(Price=val, Reference=ref, Contract=self._contract_)
 
     @staticmethod
-    def _assign_timestamp_(backing: TimestampAPI | None, val: datetime | TimestampAPI | None) -> TimestampAPI | None:
+    def _assign_timestamp_(backing: Union[TimestampAPI, None], val: Union[datetime, TimestampAPI, None]) -> Union[TimestampAPI, None]:
         if isinstance(val, TimestampAPI): return val
         if val is None: return backing
         if backing:
@@ -249,61 +249,61 @@ class OrderAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Direction(self) -> Direction | None:
+    def Direction(self) -> Union[Direction, None]:
         return self._direction_
     @Direction.setter
-    def Direction(self, val: Direction | str | None) -> None:
+    def Direction(self, val: Union[Direction, str, None]) -> None:
         self._direction_ = as_enum(Direction, val)
 
     @property
     @overridefield
-    def OrderType(self) -> OrderType | None:
+    def OrderType(self) -> Union[OrderType, None]:
         return self._order_type_
     @OrderType.setter
-    def OrderType(self, val: OrderType | str | None) -> None:
+    def OrderType(self, val: Union[OrderType, str, None]) -> None:
         self._order_type_ = as_enum(OrderType, val)
 
     @property
     @overridefield
-    def OrderStatus(self) -> OrderStatus | None:
+    def OrderStatus(self) -> Union[OrderStatus, None]:
         return self._order_status_
     @OrderStatus.setter
-    def OrderStatus(self, val: OrderStatus | str | None) -> None:
+    def OrderStatus(self, val: Union[OrderStatus, str, None]) -> None:
         self._order_status_ = as_enum(OrderStatus, val)
 
     @property
     @overridefield
-    def TimeInForce(self) -> TimeInForce | None:
+    def TimeInForce(self) -> Union[TimeInForce, None]:
         return self._time_in_force_
     @TimeInForce.setter
-    def TimeInForce(self, val: TimeInForce | str | None) -> None:
+    def TimeInForce(self, val: Union[TimeInForce, str, None]) -> None:
         self._time_in_force_ = as_enum(TimeInForce, val)
 
     @property
     @overridefield
-    def Security(self) -> SecurityAPI | None:
+    def Security(self) -> Union[SecurityAPI, None]:
         return self._security_
     @Security.setter
-    def Security(self, val: int | SecurityAPI | None) -> None:
+    def Security(self, val: Union[int, SecurityAPI, None]) -> None:
         from Library.Universe.Security import SecurityAPI
         if isinstance(val, SecurityAPI): self._security_ = val
         elif val is not None: self._security_ = SecurityAPI(UID=val, db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def Position(self) -> PositionAPI | None:
+    def Position(self) -> Union[PositionAPI, None]:
         return self._position_
     @Position.setter
-    def Position(self, val: int | PositionAPI | None) -> None:
+    def Position(self, val: Union[int, PositionAPI, None]) -> None:
         if isinstance(val, PositionAPI): self._position_ = val
         elif val is not None: self._position_ = PositionAPI(UID=val, db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def ExecutionPrice(self) -> PriceAPI | None:
+    def ExecutionPrice(self) -> Union[PriceAPI, None]:
         return self._execution_price_
     @ExecutionPrice.setter
-    def ExecutionPrice(self, val: float | PriceAPI | None) -> None:
+    def ExecutionPrice(self, val: Union[float, PriceAPI, None]) -> None:
         price = val.Price if isinstance(val, PriceAPI) else val
         if price is None: return
         if self._execution_price_:
@@ -316,66 +316,66 @@ class OrderAPI(DatapointAPI):
 
     @property
     @overridefield
-    def LimitPrice(self) -> PriceAPI | None:
+    def LimitPrice(self) -> Union[PriceAPI, None]:
         return self._limit_price_
     @LimitPrice.setter
-    def LimitPrice(self, val: float | PriceAPI | None) -> None:
+    def LimitPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._limit_price_ = self._assign_price_(self._limit_price_, val)
 
     @property
     @overridefield
-    def StopPrice(self) -> PriceAPI | None:
+    def StopPrice(self) -> Union[PriceAPI, None]:
         return self._stop_price_
     @StopPrice.setter
-    def StopPrice(self, val: float | PriceAPI | None) -> None:
+    def StopPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._stop_price_ = self._assign_price_(self._stop_price_, val)
 
     @property
     @overridefield
-    def StopLossPrice(self) -> PriceAPI | None:
+    def StopLossPrice(self) -> Union[PriceAPI, None]:
         return self._stop_loss_price_
     @StopLossPrice.setter
-    def StopLossPrice(self, val: float | PriceAPI | None) -> None:
+    def StopLossPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._stop_loss_price_ = self._assign_price_(self._stop_loss_price_, val)
 
     @property
     @overridefield
-    def TakeProfitPrice(self) -> PriceAPI | None:
+    def TakeProfitPrice(self) -> Union[PriceAPI, None]:
         return self._take_profit_price_
     @TakeProfitPrice.setter
-    def TakeProfitPrice(self, val: float | PriceAPI | None) -> None:
+    def TakeProfitPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._take_profit_price_ = self._assign_price_(self._take_profit_price_, val)
 
     @property
     @overridefield
-    def BaseSlippagePrice(self) -> PriceAPI | None:
+    def BaseSlippagePrice(self) -> Union[PriceAPI, None]:
         return self._base_slippage_price_
     @BaseSlippagePrice.setter
-    def BaseSlippagePrice(self, val: float | PriceAPI | None) -> None:
+    def BaseSlippagePrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._base_slippage_price_ = self._assign_price_(self._base_slippage_price_, val)
 
     @property
     @overridefield
-    def EntryTimestamp(self) -> TimestampAPI | None:
+    def EntryTimestamp(self) -> Union[TimestampAPI, None]:
         return self._entry_timestamp_
     @EntryTimestamp.setter
-    def EntryTimestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def EntryTimestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         self._entry_timestamp_ = self._assign_timestamp_(self._entry_timestamp_, val)
 
     @property
     @overridefield
-    def ExpirationTimestamp(self) -> TimestampAPI | None:
+    def ExpirationTimestamp(self) -> Union[TimestampAPI, None]:
         return self._expiration_timestamp_
     @ExpirationTimestamp.setter
-    def ExpirationTimestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def ExpirationTimestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         self._expiration_timestamp_ = self._assign_timestamp_(self._expiration_timestamp_, val)
 
     @property
     @overridefield
-    def LastUpdateTimestamp(self) -> TimestampAPI | None:
+    def LastUpdateTimestamp(self) -> Union[TimestampAPI, None]:
         return self._last_update_timestamp_
     @LastUpdateTimestamp.setter
-    def LastUpdateTimestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def LastUpdateTimestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         self._last_update_timestamp_ = self._assign_timestamp_(self._last_update_timestamp_, val)
 
     @property
@@ -400,34 +400,34 @@ class OrderAPI(DatapointAPI):
     def IsExpired(self) -> bool:
         return self._order_status_ == OrderStatus.Expired
     @property
-    def ExecutionRatio(self) -> float | None:
+    def ExecutionRatio(self) -> Union[float, None]:
         if not self.Volume or self.ExecutedVolume is None: return None
         return self.ExecutedVolume / self.Volume
     @property
-    def RiskAmount(self) -> float | None:
+    def RiskAmount(self) -> Union[float, None]:
         if self._execution_price_ and self._stop_loss_price_ and self.Volume:
             if self.Contract and self.Contract.LotSize:
                 return abs(self._execution_price_.Price - self._stop_loss_price_.Price) * self.Volume * self.Contract.LotSize
         return None
 
     @property
-    def RewardAmount(self) -> float | None:
+    def RewardAmount(self) -> Union[float, None]:
         if self._execution_price_ and self._take_profit_price_ and self.Volume:
             if self.Contract and self.Contract.LotSize:
                 return abs(self._take_profit_price_.Price - self._execution_price_.Price) * self.Volume * self.Contract.LotSize
         return None
 
     @property
-    def UnfilledVolume(self) -> float | None:
+    def UnfilledVolume(self) -> Union[float, None]:
         if self.Volume is None or self.ExecutedVolume is None: return None
         return self.Volume - self.ExecutedVolume
 
     @property
     @overridefield
-    def Contract(self) -> ContractAPI | None:
+    def Contract(self) -> Union[ContractAPI, None]:
         return self._contract_
     @Contract.setter
-    def Contract(self, val: ContractAPI | None) -> None:
+    def Contract(self, val: Union[ContractAPI, None]) -> None:
         self._contract_ = val
         for backing in (self._execution_price_, self._limit_price_, self._stop_price_, self._stop_loss_price_, self._take_profit_price_, self._base_slippage_price_):
             if backing: backing.Contract = self._contract_

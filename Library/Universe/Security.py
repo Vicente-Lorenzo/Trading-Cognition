@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -20,17 +20,17 @@ class SecurityAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Security"
 
-    UID: int | None = None
+    UID: Union[int, None] = None
 
-    Provider: InitVar[str | ProviderAPI | None] = field(default=MISSING)
-    Category: InitVar[str | CategoryAPI | None] = field(default=MISSING)
-    Ticker: InitVar[str | TickerAPI | None] = field(default=MISSING)
-    Contract: InitVar[int | str | ContractType | ContractAPI | None] = field(default=MISSING)
+    Provider: InitVar[Union[str, ProviderAPI, None]] = field(default=MISSING)
+    Category: InitVar[Union[str, CategoryAPI, None]] = field(default=MISSING)
+    Ticker: InitVar[Union[str, TickerAPI, None]] = field(default=MISSING)
+    Contract: InitVar[Union[int, str, ContractType, ContractAPI, None]] = field(default=MISSING)
 
-    _provider_: ProviderAPI | None = field(default=None, init=False, repr=False)
-    _category_: CategoryAPI | None = field(default=None, init=False, repr=False)
-    _ticker_: TickerAPI | None = field(default=None, init=False, repr=False)
-    _contract_: ContractAPI | None = field(default=None, init=False, repr=False)
+    _provider_: Union[ProviderAPI, None] = field(default=None, init=False, repr=False)
+    _category_: Union[CategoryAPI, None] = field(default=None, init=False, repr=False)
+    _ticker_: Union[TickerAPI, None] = field(default=None, init=False, repr=False)
+    _contract_: Union[ContractAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -44,15 +44,15 @@ class SecurityAPI(UniverseAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      provider: str | ProviderAPI | None,
-                      category: str | CategoryAPI | None,
-                      ticker: str | TickerAPI | None,
-                      contract: int | str | ContractType | ContractAPI | None) -> None:
+                      provider: Union[str, ProviderAPI, None],
+                      category: Union[str, CategoryAPI, None],
+                      ticker: Union[str, TickerAPI, None],
+                      contract: Union[int, str, ContractType, ContractAPI, None]) -> None:
         provider = coerce(provider)
         category = coerce(category)
         ticker = coerce(ticker)
@@ -81,7 +81,7 @@ class SecurityAPI(UniverseAPI):
             self._contract_ = ContractAPI(Ticker=self._ticker_.UID, Provider=self._provider_.UID, Type=ct, db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         row = super()._pull_(overload=overload)
         if not row and self.UID is None and self._ticker_ and self._provider_:
             clauses = ['"Provider" = :provider:', '"Ticker" = :ticker:']
@@ -105,36 +105,36 @@ class SecurityAPI(UniverseAPI):
 
     @property
     @overridefield
-    def Provider(self) -> ProviderAPI | None:
+    def Provider(self) -> Union[ProviderAPI, None]:
         return self._provider_
     @Provider.setter
-    def Provider(self, val: str | ProviderAPI | None) -> None:
+    def Provider(self, val: Union[str, ProviderAPI, None]) -> None:
         if isinstance(val, ProviderAPI): self._provider_ = val
         elif val is not None: self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(val), db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def Category(self) -> CategoryAPI | None:
+    def Category(self) -> Union[CategoryAPI, None]:
         return self._category_
     @Category.setter
-    def Category(self, val: str | CategoryAPI | None) -> None:
+    def Category(self, val: Union[str, CategoryAPI, None]) -> None:
         if isinstance(val, CategoryAPI): self._category_ = val
         elif val is not None: self._category_ = CategoryAPI(UID=val, db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def Ticker(self) -> TickerAPI | None:
+    def Ticker(self) -> Union[TickerAPI, None]:
         return self._ticker_
     @Ticker.setter
-    def Ticker(self, val: str | TickerAPI | None) -> None:
+    def Ticker(self, val: Union[str, TickerAPI, None]) -> None:
         if isinstance(val, TickerAPI): self._ticker_ = val
         elif val is not None: self._ticker_ = TickerAPI(UID=TickerAPI.normalize(val), db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def Contract(self) -> ContractAPI | None:
+    def Contract(self) -> Union[ContractAPI, None]:
         return self._contract_
     @Contract.setter
-    def Contract(self, val: int | ContractAPI | None) -> None:
+    def Contract(self, val: Union[int, ContractAPI, None]) -> None:
         if isinstance(val, ContractAPI): self._contract_ = val
         elif isinstance(val, int): self._contract_ = ContractAPI(UID=val, db=self._db_, autoload=True)

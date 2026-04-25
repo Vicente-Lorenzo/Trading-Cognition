@@ -1,3 +1,4 @@
+from typing import Union
 from abc import ABC, abstractmethod
 
 from Library.Logging import HandlerAPI
@@ -61,14 +62,14 @@ class StrategyAPI(ABC):
         self._log.alert(lambda: StrategyAPI.CLOSED_SELL.format(update.Trade.PositionType.name))
 
     @abstractmethod
-    def risk_management(self) -> MachineAPI | None:
+    def risk_management(self) -> Union[MachineAPI, None]:
         raise NotImplementedError
 
     @abstractmethod
-    def signal_management(self) -> MachineAPI | None:
+    def signal_management(self) -> Union[MachineAPI, None]:
         raise NotImplementedError
 
-    def strategy_management(self) -> MachineAPI | None:
+    def strategy_management(self) -> Union[MachineAPI, None]:
 
         strategy_engine = MachineAPI("Strategy Management")
 

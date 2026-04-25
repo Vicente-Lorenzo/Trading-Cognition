@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey
@@ -21,10 +21,10 @@ class TimeframeAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Timeframe"
 
-    UID: str | None = None
-    Name: str | None = None
-    Unit: str | None = None
-    Value: int | None = None
+    UID: Union[str, None] = None
+    Name: Union[str, None] = None
+    Unit: Union[str, None] = None
+    Value: Union[int, None] = None
 
     @property
     def Structure(self) -> dict:
@@ -37,7 +37,7 @@ class TimeframeAPI(UniverseAPI):
         }
 
     @staticmethod
-    def normalize(uid: str | None) -> str:
+    def normalize(uid: Union[str, None]) -> str:
         if not uid: return ""
         uid = str(uid).strip().upper()
         if uid in ["DAILY", "D", "DAY", "1D"]: return "D1"
@@ -62,7 +62,7 @@ class TimeframeAPI(UniverseAPI):
         return uid
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
@@ -81,7 +81,7 @@ class TimeframeAPI(UniverseAPI):
         name = _UNIT_MAP_.get(unit, "Minute")
         self.Name = name if v == 1 else f"{name}{v}"
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         condition, parameters = None, None
         if not self.UID and self.Name:
             condition, parameters = '"Name" = :value:', {"value": self.Name}
@@ -91,16 +91,16 @@ class TimeframeAPI(UniverseAPI):
         return row
 
     @property
-    def Hours(self) -> float | None:
+    def Hours(self) -> Union[float, None]:
         minutes = self.Minutes
         return minutes / 60 if minutes is not None else None
 
     @property
-    def Minutes(self) -> float | None:
+    def Minutes(self) -> Union[float, None]:
         if self.Value is None or self.Unit is None: return None
         return self.Value * _MINUTES_MAP_.get(self.Unit, 1)
 
     @property
-    def Seconds(self) -> float | None:
+    def Seconds(self) -> Union[float, None]:
         minutes = self.Minutes
         return minutes * 60 if minutes is not None else None

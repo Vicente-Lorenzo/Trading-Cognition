@@ -1,3 +1,4 @@
+from typing import Union
 from math import floor
 
 from Library.Parameters import Parameters
@@ -9,8 +10,8 @@ class ManagerAPI:
 
     def __init__(self, manager_management: Parameters):
         self.ManagerManagement = manager_management
-        self.Account: Account | None = None
-        self.Security: Security | None = None
+        self.Account: Union[Account, None] = None
+        self.Security: Union[Security, None] = None
         self.Positions: PositionAPI = PositionAPI()
         self.Statistics: StatisticsAPI = StatisticsAPI()
 

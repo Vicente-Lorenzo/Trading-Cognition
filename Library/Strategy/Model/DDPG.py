@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Parameters import Parameters
 
 from Library.Engine import MachineAPI
@@ -13,8 +14,8 @@ class DDPGStrategyAPI(StrategyAPI):
 
         super().__init__(money_management, risk_management, signal_management)
 
-    def risk_management(self) -> MachineAPI | None:
+    def risk_management(self) -> Union[MachineAPI, None]:
         return None
 
-    def signal_management(self) -> MachineAPI | None:
+    def signal_management(self) -> Union[MachineAPI, None]:
         return None

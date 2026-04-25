@@ -1,5 +1,5 @@
 import blpapi
-from typing import Callable
+from typing import Union, Callable
 
 from Library.Utility.Service import ServiceAPI
 
@@ -7,8 +7,8 @@ class StreamingAPI(ServiceAPI):
     """Bloomberg Streaming Data interface."""
 
     def subscribe(self,
-                  securities: str | list[str],
-                  fields: str | list[str],
+                  securities: Union[str, list[str]],
+                  fields: Union[str, list[str]],
                   callback: Callable,
                   frame: bool = True,
                   limit: int = None,

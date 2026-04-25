@@ -1,5 +1,5 @@
 import queue
-from typing import Type, Callable
+from typing import Union, Type, Callable
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -34,8 +34,8 @@ class _TickSnapshot:
 @dataclass(slots=True)
 class _LastPositionData:
     Volume: float
-    StopLoss: float | None
-    TakeProfit: float | None
+    StopLoss: Union[float, None]
+    TakeProfit: Union[float, None]
 
 class TradingSystemAPI(SystemAPI):
 
@@ -63,30 +63,30 @@ class TradingSystemAPI(SystemAPI):
         self.queue: queue.Queue = queue.Queue()
 
         self._sync_buffer: list[BarAPI] = []
-        self._initial_account: AccountAPI | None = None
-        self._start_timestamp: datetime | None = None
-        self._stop_timestamp: datetime | None = None
+        self._initial_account: Union[AccountAPI, None] = None
+        self._start_timestamp: Union[datetime, None] = None
+        self._stop_timestamp: Union[datetime, None] = None
 
         self._ask_base_conversion: Callable[[], float] = lambda: 1.0
         self._bid_base_conversion: Callable[[], float] = lambda: 1.0
         self._ask_quote_conversion: Callable[[], float] = lambda: 1.0
         self._bid_quote_conversion: Callable[[], float] = lambda: 1.0
 
-        self._bar_timestamp: datetime | None = None
-        self._gap_tick: _TickSnapshot | None = None
-        self._open_tick: _TickSnapshot | None = None
-        self._high_tick: _TickSnapshot | None = None
-        self._low_tick: _TickSnapshot | None = None
-        self._close_tick: _TickSnapshot | None = None
+        self._bar_timestamp: Union[datetime, None] = None
+        self._gap_tick: Union[_TickSnapshot, None] = None
+        self._open_tick: Union[_TickSnapshot, None] = None
+        self._high_tick: Union[_TickSnapshot, None] = None
+        self._low_tick: Union[_TickSnapshot, None] = None
+        self._close_tick: Union[_TickSnapshot, None] = None
 
         self._positions: dict[int, _LastPositionData] = {}
 
-        self._ask_above_target: float | None = None
-        self._ask_below_target: float | None = None
-        self._bid_above_target: float | None = None
-        self._bid_below_target: float | None = None
+        self._ask_above_target: Union[float, None] = None
+        self._ask_below_target: Union[float, None] = None
+        self._bid_above_target: Union[float, None] = None
+        self._bid_below_target: Union[float, None] = None
 
-        self._bar_db: DatabaseAPI | None = None
+        self._bar_db: Union[DatabaseAPI, None] = None
 
     def __enter__(self):
         self.strategy = self._strategy(
@@ -350,7 +350,7 @@ class TradingSystemAPI(SystemAPI):
     def send_action_complete(self, action: CompleteAction) -> None:
         pass
 
-    def send_action_open(self, action: OpenBuyAction | OpenSellAction) -> None:
+    def send_action_open(self, action: Union[OpenBuyAction, OpenSellAction]) -> None:
         trade_type = 0 if isinstance(action, OpenBuyAction) else 1
         sl = action.StopLoss if action.StopLoss is not None else None
         tp = action.TakeProfit if action.TakeProfit is not None else None
@@ -367,7 +367,7 @@ class TradingSystemAPI(SystemAPI):
             self._log.error(lambda: f"Open order failed: {result.Error}")
             self.api.Stop()
 
-    def send_action_modify_volume(self, action: ModifyBuyVolumeAction | ModifySellVolumeAction) -> None:
+    def send_action_modify_volume(self, action: Union[ModifyBuyVolumeAction, ModifySellVolumeAction]) -> None:
         pos = next((p for p in self.api.Positions if p.Id == action.PositionID), None)
         if pos is None:
             self._log.warning(lambda: f"ModifyVolume: position {action.PositionID} not found")
@@ -377,7 +377,7 @@ class TradingSystemAPI(SystemAPI):
             self._log.error(lambda: f"ModifyVolume failed: {result.Error}")
             self.api.Stop()
 
-    def send_action_modify_stop_loss(self, action: ModifyBuyStopLossAction | ModifySellStopLossAction) -> None:
+    def send_action_modify_stop_loss(self, action: Union[ModifyBuyStopLossAction, ModifySellStopLossAction]) -> None:
         pos = next((p for p in self.api.Positions if p.Id == action.PositionID), None)
         if pos is None:
             self._log.warning(lambda: f"ModifyStopLoss: position {action.PositionID} not found")
@@ -387,7 +387,7 @@ class TradingSystemAPI(SystemAPI):
             self._log.error(lambda: f"ModifyStopLoss failed: {result.Error}")
             self.api.Stop()
 
-    def send_action_modify_take_profit(self, action: ModifyBuyTakeProfitAction | ModifySellTakeProfitAction) -> None:
+    def send_action_modify_take_profit(self, action: Union[ModifyBuyTakeProfitAction, ModifySellTakeProfitAction]) -> None:
         pos = next((p for p in self.api.Positions if p.Id == action.PositionID), None)
         if pos is None:
             self._log.warning(lambda: f"ModifyTakeProfit: position {action.PositionID} not found")
@@ -397,7 +397,7 @@ class TradingSystemAPI(SystemAPI):
             self._log.error(lambda: f"ModifyTakeProfit failed: {result.Error}")
             self.api.Stop()
 
-    def send_action_close(self, action: CloseBuyAction | CloseSellAction) -> None:
+    def send_action_close(self, action: Union[CloseBuyAction, CloseSellAction]) -> None:
         pos = next((p for p in self.api.Positions if p.Id == action.PositionID), None)
         if pos is None:
             self._log.warning(lambda: f"Close: position {action.PositionID} not found")
@@ -587,7 +587,7 @@ class TradingSystemAPI(SystemAPI):
             self.api.Stop()
 
     @staticmethod
-    def _changed(old: float | None, new: float | None) -> bool:
+    def _changed(old: Union[float, None], new: Union[float, None]) -> bool:
         if old is None and new is None:
             return False
         if old is None or new is None:

@@ -4,7 +4,7 @@ from time import localtime
 from datetime import date, datetime, timedelta
 from itertools import count
 from queue import Queue
-from typing import Type, Iterator, Callable
+from typing import Union, Type, Iterator, Callable
 
 from Library.Database.Dataframe import pl
 from Library.Classes import *
@@ -25,37 +25,37 @@ class BacktestingSystemAPI(SystemAPI):
     TICK = watchlist.Timeframes[0]
     SYMBOLS = [symbol for group in watchlist.Symbols.values() for symbol in group]
 
-    account: tuple[AssetType, float, float] | None = None
-    account_data: Account | None = None
+    account: Union[tuple[AssetType, float, float], None] = None
+    account_data: Union[Account, None] = None
 
-    tick_db: DatabaseAPI | None = None
-    tick_df: pl.DataFrame | None = None
+    tick_db: Union[DatabaseAPI, None] = None
+    tick_df: Union[pl.DataFrame, None] = None
 
-    bar_db: DatabaseAPI | None = None
-    bar_df: pl.DataFrame | None = None
+    bar_db: Union[DatabaseAPI, None] = None
+    bar_df: Union[pl.DataFrame, None] = None
 
-    symbol_data: Symbol | None = None
+    symbol_data: Union[Symbol, None] = None
 
-    base_conversion_db: DatabaseAPI | None = None
-    base_conversion_df: pl.DataFrame | None = None
+    base_conversion_db: Union[DatabaseAPI, None] = None
+    base_conversion_df: Union[pl.DataFrame, None] = None
     base_conversion_rate: Callable[[datetime, float], float] | None = None
 
-    quote_conversion_db: DatabaseAPI | None = None
-    quote_conversion_df: pl.DataFrame | None = None
+    quote_conversion_db: Union[DatabaseAPI, None] = None
+    quote_conversion_df: Union[pl.DataFrame, None] = None
     quote_conversion_rate: Callable[[datetime, float], float] | None = None
 
-    spread: tuple[SpreadType, float] | None = None
+    spread: Union[tuple[SpreadType, float], None] = None
     spread_fee: Callable[[datetime, float], float] | None = None
 
-    commission: tuple[CommissionType, float] | None = None
+    commission: Union[tuple[CommissionType, float], None] = None
     commission_fee: Callable[[datetime, float, float], float] | None = None
 
-    swap: tuple[SwapType, float, float] | None = None
+    swap: Union[tuple[SwapType, float, float], None] = None
     swap_buy_fee: Callable[[datetime, datetime, datetime, float, float], float] | None = None
     swap_sell_fee: Callable[[datetime, datetime, datetime, float, float], float] | None = None
 
-    window: int | None = None
-    offset: int | None = None
+    window: Union[int, None] = None
+    offset: Union[int, None] = None
 
     def __init__(self,
                  broker: str,
@@ -64,8 +64,8 @@ class BacktestingSystemAPI(SystemAPI):
                  timeframe: str,
                  strategy: Type[StrategyAPI],
                  parameters: Parameters,
-                 start: str | date,
-                 stop: str | date,
+                 start: Union[str, date],
+                 stop: Union[str, date],
                  account: tuple[AssetType, float, float],
                  spread: tuple[SpreadType, float],
                  commission: tuple[CommissionType, float],
@@ -80,7 +80,7 @@ class BacktestingSystemAPI(SystemAPI):
             parameters=parameters
         )
 
-        def parse_date(x: str | date) -> tuple[str | date, str | date]:
+        def parse_date(x: Union[str, date]) -> tuple[Union[str, date], str | date]:
             if isinstance(x, str):
                 return x, string_to_datetime(x, "%d-%m-%Y").date()
             else:
@@ -91,7 +91,7 @@ class BacktestingSystemAPI(SystemAPI):
 
         self.account = account
         self._account_asset, self._account_balance, self._account_leverage = account
-        self._account_data: Account | None = None
+        self._account_data: Union[Account, None] = None
 
         self.spread = spread
         self._spread_type, self._spread_value = spread
@@ -100,27 +100,27 @@ class BacktestingSystemAPI(SystemAPI):
         self.swap = swap
         self._swap_type, self._swap_buy, self._swap_sell  = swap
 
-        self._tick_df_iterator: Iterator | None = None
-        self._tick_data_next: Bar | None = None
-        self._tick_open_next: Tick | None = None
+        self._tick_df_iterator: Union[Iterator, None] = None
+        self._tick_data_next: Union[Bar, None] = None
+        self._tick_open_next: Union[Tick, None] = None
 
-        self._bar_df_iterator: Iterator | None = None
-        self._bar_data_at: Bar | None = None
-        self._bar_data_at_last: Bar | None = None
-        self._bar_data_next: Bar | None = None
+        self._bar_df_iterator: Union[Iterator, None] = None
+        self._bar_data_at: Union[Bar, None] = None
+        self._bar_data_at_last: Union[Bar, None] = None
+        self._bar_data_next: Union[Bar, None] = None
 
-        self._offset: int | None = None
+        self._offset: Union[int, None] = None
 
-        self._update_id_queue: Queue[UpdateID] | None = None
-        self._update_args_queue: Queue[Account | Symbol | Position | Trade | Bar | Tick] | None = None
+        self._update_id_queue: Union[Queue[UpdateID], None] = None
+        self._update_args_queue: Union[Queue[Account, Symbol, Position, Trade, Bar, Tick], None] = None
 
         self._pids: count = count(start=1)
         self._tids: count = count(start=1)
         self._positions: dict[int, Position] = {}
-        self._ask_above_target: float | None = None
-        self._ask_below_target: float | None = None
-        self._bid_above_target: float | None = None
-        self._bid_below_target: float | None = None
+        self._ask_above_target: Union[float, None] = None
+        self._ask_below_target: Union[float, None] = None
+        self._bid_above_target: Union[float, None] = None
+        self._bid_below_target: Union[float, None] = None
 
     def __enter__(self):
         if self.strategy is None:
@@ -426,7 +426,7 @@ class BacktestingSystemAPI(SystemAPI):
     def _delete_position(self, pid: int) -> None:
         del self._positions[pid]
 
-    def _find_position(self, pid: int) -> Position | None:
+    def _find_position(self, pid: int) -> Union[Position, None]:
         return self._positions[pid] if pid in self._positions else None
 
     def _next_pid(self):
@@ -464,7 +464,7 @@ class BacktestingSystemAPI(SystemAPI):
         used_margin = 0.0
         return quantity, points, pips, gross_pnl, commission_pnl, swap_pnl, used_margin
 
-    def _open_position(self, position_type: PositionType, trade_type: Direction, volume: float, entry_price: float, sl_price: float | None, tp_price: float | None, price_delta: float, tick: Tick) -> Position:
+    def _open_position(self, position_type: PositionType, trade_type: Direction, volume: float, entry_price: float, sl_price: Union[float, None], tp_price: Union[float, None], price_delta: float, tick: Tick) -> Position:
         pid = self._next_pid()
         entry_timestamp = tick.Timestamp
         quantity, points, pips, gross_pnl, commission_pnl, swap_pnl, used_margin = self._calculate_statistics(
@@ -495,14 +495,14 @@ class BacktestingSystemAPI(SystemAPI):
             TakeProfit=tp_price
         )
 
-    def _open_buy_position(self, position_type: PositionType, volume: float, sl_price_delta: float | None, tp_price_delta: float | None, tick: Tick) -> Position:
+    def _open_buy_position(self, position_type: PositionType, volume: float, sl_price_delta: Union[float, None], tp_price_delta: Union[float, None], tick: Tick) -> Position:
         entry_price = tick.Ask.Price
         sl_price = None if sl_price_delta is None else entry_price - sl_price_delta
         tp_price = None if tp_price_delta is None else entry_price + tp_price_delta
         price_delta = tick.Bid.Price - entry_price
         return self._open_position(position_type, Direction.Buy, volume, entry_price, sl_price, tp_price, price_delta, tick)
 
-    def _open_sell_position(self, position_type: PositionType, volume: float, sl_price_delta: float | None, tp_price_delta: float | None, tick: Tick) -> Position:
+    def _open_sell_position(self, position_type: PositionType, volume: float, sl_price_delta: Union[float, None], tp_price_delta: Union[float, None], tick: Tick) -> Position:
         entry_price = tick.Bid.Price
         sl_price = None if sl_price_delta is None else entry_price + sl_price_delta
         tp_price = None if tp_price_delta is None else entry_price - tp_price_delta
@@ -557,7 +557,7 @@ class BacktestingSystemAPI(SystemAPI):
     def send_action_complete(self, action: CompleteAction) -> None:
         pass
 
-    def send_action_open(self, action: OpenBuyAction | OpenSellAction) -> None:
+    def send_action_open(self, action: Union[OpenBuyAction, OpenSellAction]) -> None:
         if action.Volume > self.symbol_data.VolumeInUnitsMax:
             return self._log.error(lambda: f"Action Open: Invalid Volume above the maximum units ({action.Volume})")
         if action.Volume < self.symbol_data.VolumeInUnitsMin:
@@ -575,8 +575,8 @@ class BacktestingSystemAPI(SystemAPI):
                 self._log.error(lambda: f"Action Open: Invalid Take Profit below the minimum tick ({action.TakeProfit})")
                 action.TakeProfit = None
 
-        update_id: UpdateID | None = None
-        position: Position | None = None
+        update_id: Union[UpdateID, None] = None
+        position: Union[Position, None] = None
         match action.ActionID:
             case ActionID.OpenBuy:
                 update_id = UpdateID.OpenedBuy
@@ -592,7 +592,7 @@ class BacktestingSystemAPI(SystemAPI):
         self._update_args_queue.put(position)
         return self._update_id_queue.put(UpdateID.Complete)
 
-    def send_action_modify_volume(self, action: ModifyBuyVolumeAction | ModifySellVolumeAction) -> None:
+    def send_action_modify_volume(self, action: Union[ModifyBuyVolumeAction, ModifySellVolumeAction]) -> None:
         position: Position = self._find_position(action.PositionID)
         if not position:
             return self._log.error(lambda: "Action Modify Volume: Position not found")
@@ -605,8 +605,8 @@ class BacktestingSystemAPI(SystemAPI):
         if not equals(action.Volume % self.symbol_data.VolumeInUnitsStep, 0.0):
             return self._log.error(lambda: f"Action Modify Volume: Invalid Volume not normalised to minimum step ({action.Volume})")
 
-        update_id: UpdateID | None = None
-        trade: Trade | None = None
+        update_id: Union[UpdateID, None] = None
+        trade: Union[Trade, None] = None
 
         initial_volume: float = position.Volume
         initial_commission: float = position.CommissionPnL
@@ -643,14 +643,14 @@ class BacktestingSystemAPI(SystemAPI):
         self._update_args_queue.put(trade)
         return self._update_id_queue.put(UpdateID.Complete)
 
-    def send_action_modify_stop_loss(self, action: ModifyBuyStopLossAction | ModifySellStopLossAction) -> None:
+    def send_action_modify_stop_loss(self, action: Union[ModifyBuyStopLossAction, ModifySellStopLossAction]) -> None:
         position: Position = self._find_position(action.PositionID)
         if not position:
             return self._log.error(lambda: "Action Modify Stop Loss: Position not found")
         if equals(action.StopLoss, position.StopLoss.Price):
             return self._log.error(lambda: f"Action Modify Stop Loss: Invalid new Stop Loss equal to old Stop Loss ({action.StopLoss})")
 
-        update_id: UpdateID | None = None
+        update_id: Union[UpdateID, None] = None
         match action.ActionID:
             case ActionID.ModifyBuyStopLoss:
                 if action.StopLoss > self._tick_open_next.Bid.Price:
@@ -669,14 +669,14 @@ class BacktestingSystemAPI(SystemAPI):
         self._update_args_queue.put(position)
         return self._update_id_queue.put(UpdateID.Complete)
 
-    def send_action_modify_take_profit(self, action: ModifyBuyTakeProfitAction | ModifySellTakeProfitAction) -> None:
+    def send_action_modify_take_profit(self, action: Union[ModifyBuyTakeProfitAction, ModifySellTakeProfitAction]) -> None:
         position: Position = self._find_position(action.PositionID)
         if not position:
             return self._log.error(lambda: "Action Modify Take Profit: Position not found")
         if equals(action.TakeProfit, position.TakeProfit.Price):
             return self._log.error(lambda: f"Action Modify Take Profit: Invalid new Take Profit equal to old Take Profit ({action.TakeProfit})")
 
-        update_id: UpdateID | None = None
+        update_id: Union[UpdateID, None] = None
         match action.ActionID:
             case ActionID.ModifyBuyTakeProfit:
                 if action.TakeProfit < self._tick_open_next.Bid.Price:
@@ -695,13 +695,13 @@ class BacktestingSystemAPI(SystemAPI):
         self._update_args_queue.put(position)
         return self._update_id_queue.put(UpdateID.Complete)
 
-    def send_action_close(self, action: CloseBuyAction | CloseSellAction, tick: Tick = None) -> None:
+    def send_action_close(self, action: Union[CloseBuyAction, CloseSellAction], tick: Tick = None) -> None:
         position: Position = self._find_position(action.PositionID)
         if not position:
             return self._log.error(lambda: "Action Close: Position not found")
 
-        update_id: UpdateID | None = None
-        trade: Trade | None = None
+        update_id: Union[UpdateID, None] = None
+        trade: Union[Trade, None] = None
         match action.ActionID:
             case ActionID.CloseBuy:
                 update_id = UpdateID.ClosedBuy

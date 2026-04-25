@@ -1,4 +1,5 @@
 import blpapi
+from typing import Union
 
 from Library.Database.Dataframe import pd, pl
 from Library.Utility.Service import ServiceAPI
@@ -11,11 +12,11 @@ class ReferenceAPI(ServiceAPI):
     _REQUEST_TYPE_ = "ReferenceDataRequest"
 
     def fetch(self,
-              securities: str | list[str],
-              fields: str | list[str],
+              securities: Union[str, list[str]],
+              fields: Union[str, list[str]],
               overrides: dict[str, str] = None,
               timeout: int = 0,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches reference data for multiple securities and fields.
         :param securities: Security ticker or list of tickers.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar
 from datetime import datetime
+from typing import Union, ClassVar
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -22,27 +22,27 @@ class BarAPI(DatapointAPI):
     Schema: ClassVar[str] = "Market"
     Table: ClassVar[str] = "Bar"
 
-    UID: int | None = field(default=None, kw_only=True)
-    Security: InitVar[int | SecurityAPI | None] = field(default=MISSING)
-    Timeframe: InitVar[str | TimeframeAPI | None] = field(default=MISSING)
-    Timestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
+    UID: Union[int, None] = field(default=None, kw_only=True)
+    Security: InitVar[Union[int, SecurityAPI, None]] = field(default=MISSING)
+    Timeframe: InitVar[Union[str, TimeframeAPI, None]] = field(default=MISSING)
+    Timestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
 
-    GapTick: InitVar[int | TickAPI | None] = field(default=MISSING)
-    OpenTick: InitVar[int | TickAPI | None] = field(default=MISSING)
-    HighTick: InitVar[int | TickAPI | None] = field(default=MISSING)
-    LowTick: InitVar[int | TickAPI | None] = field(default=MISSING)
-    CloseTick: InitVar[int | TickAPI | None] = field(default=MISSING)
+    GapTick: InitVar[Union[int, TickAPI, None]] = field(default=MISSING)
+    OpenTick: InitVar[Union[int, TickAPI, None]] = field(default=MISSING)
+    HighTick: InitVar[Union[int, TickAPI, None]] = field(default=MISSING)
+    LowTick: InitVar[Union[int, TickAPI, None]] = field(default=MISSING)
+    CloseTick: InitVar[Union[int, TickAPI, None]] = field(default=MISSING)
 
-    Volume: float | None = None
+    Volume: Union[float, None] = None
 
-    _security_: SecurityAPI | None = field(default=None, init=False, repr=False)
-    _timeframe_: TimeframeAPI | None = field(default=None, init=False, repr=False)
-    _timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _gap_tick_: TickAPI | None = field(default=None, init=False, repr=False)
-    _open_tick_: TickAPI | None = field(default=None, init=False, repr=False)
-    _high_tick_: TickAPI | None = field(default=None, init=False, repr=False)
-    _low_tick_: TickAPI | None = field(default=None, init=False, repr=False)
-    _close_tick_: TickAPI | None = field(default=None, init=False, repr=False)
+    _security_: Union[SecurityAPI, None] = field(default=None, init=False, repr=False)
+    _timeframe_: Union[TimeframeAPI, None] = field(default=None, init=False, repr=False)
+    _timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _gap_tick_: Union[TickAPI, None] = field(default=None, init=False, repr=False)
+    _open_tick_: Union[TickAPI, None] = field(default=None, init=False, repr=False)
+    _high_tick_: Union[TickAPI, None] = field(default=None, init=False, repr=False)
+    _low_tick_: Union[TickAPI, None] = field(default=None, init=False, repr=False)
+    _close_tick_: Union[TickAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -61,19 +61,19 @@ class BarAPI(DatapointAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      security: int | SecurityAPI | None,
-                      timeframe: str | TimeframeAPI | None,
-                      timestamp: datetime | TimestampAPI | None,
-                      gap_tick: int | TickAPI | None,
-                      open_tick: int | TickAPI | None,
-                      high_tick: int | TickAPI | None,
-                      low_tick: int | TickAPI | None,
-                      close_tick: int | TickAPI | None) -> None:
+                      security: Union[int, SecurityAPI, None],
+                      timeframe: Union[str, TimeframeAPI, None],
+                      timestamp: Union[datetime, TimestampAPI, None],
+                      gap_tick: Union[int, TickAPI, None],
+                      open_tick: Union[int, TickAPI, None],
+                      high_tick: Union[int, TickAPI, None],
+                      low_tick: Union[int, TickAPI, None],
+                      close_tick: Union[int, TickAPI, None]) -> None:
         security = coerce(security)
         timeframe = coerce(timeframe)
         timestamp = coerce(timestamp)
@@ -91,7 +91,7 @@ class BarAPI(DatapointAPI):
         if isinstance(timestamp, TimestampAPI): self._timestamp_ = timestamp
         elif timestamp is not MISSING and timestamp is not None:
             self._timestamp_ = TimestampAPI(DateTime=timestamp)
-        def _init_tick_(val: int | TickAPI | None) -> TickAPI | None:
+        def _init_tick_(val: Union[int, TickAPI, None]) -> Union[TickAPI, None]:
             if isinstance(val, TickAPI): return val
             if val is not MISSING and val is not None:
                 return TickAPI(UID=val, db=db, autoload=autoload)
@@ -111,10 +111,10 @@ class BarAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Security(self) -> SecurityAPI | None:
+    def Security(self) -> Union[SecurityAPI, None]:
         return self._security_
     @Security.setter
-    def Security(self, val: int | SecurityAPI | None) -> None:
+    def Security(self, val: Union[int, SecurityAPI, None]) -> None:
         if isinstance(val, SecurityAPI): self._security_ = val
         elif val is not None: self._security_ = SecurityAPI(UID=val, db=self._db_, autoload=self._autoload_)
         for t in (self._gap_tick_, self._open_tick_, self._high_tick_, self._low_tick_, self._close_tick_):
@@ -122,19 +122,19 @@ class BarAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Timeframe(self) -> TimeframeAPI | None:
+    def Timeframe(self) -> Union[TimeframeAPI, None]:
         return self._timeframe_
     @Timeframe.setter
-    def Timeframe(self, val: str | TimeframeAPI | None) -> None:
+    def Timeframe(self, val: Union[str, TimeframeAPI, None]) -> None:
         if isinstance(val, TimeframeAPI): self._timeframe_ = val
         elif val is not None: self._timeframe_ = TimeframeAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
     @overridefield
-    def Timestamp(self) -> TimestampAPI | None:
+    def Timestamp(self) -> Union[TimestampAPI, None]:
         return self._timestamp_
     @Timestamp.setter
-    def Timestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def Timestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         if isinstance(val, TimestampAPI): self._timestamp_ = val
         elif val is not None:
             if self._timestamp_: self._timestamp_.DateTime = val
@@ -142,51 +142,51 @@ class BarAPI(DatapointAPI):
 
     @property
     @overridefield
-    def GapTick(self) -> TickAPI | None:
+    def GapTick(self) -> Union[TickAPI, None]:
         return self._gap_tick_
     @GapTick.setter
-    def GapTick(self, val: int | TickAPI | None) -> None:
+    def GapTick(self, val: Union[int, TickAPI, None]) -> None:
         if isinstance(val, TickAPI): self._gap_tick_ = val
         elif val is not None: self._gap_tick_ = TickAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
     @overridefield
-    def OpenTick(self) -> TickAPI | None:
+    def OpenTick(self) -> Union[TickAPI, None]:
         return self._open_tick_
     @OpenTick.setter
-    def OpenTick(self, val: int | TickAPI | None) -> None:
+    def OpenTick(self, val: Union[int, TickAPI, None]) -> None:
         if isinstance(val, TickAPI): self._open_tick_ = val
         elif val is not None: self._open_tick_ = TickAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
     @overridefield
-    def HighTick(self) -> TickAPI | None:
+    def HighTick(self) -> Union[TickAPI, None]:
         return self._high_tick_
     @HighTick.setter
-    def HighTick(self, val: int | TickAPI | None) -> None:
+    def HighTick(self, val: Union[int, TickAPI, None]) -> None:
         if isinstance(val, TickAPI): self._high_tick_ = val
         elif val is not None: self._high_tick_ = TickAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
     @overridefield
-    def LowTick(self) -> TickAPI | None:
+    def LowTick(self) -> Union[TickAPI, None]:
         return self._low_tick_
     @LowTick.setter
-    def LowTick(self, val: int | TickAPI | None) -> None:
+    def LowTick(self, val: Union[int, TickAPI, None]) -> None:
         if isinstance(val, TickAPI): self._low_tick_ = val
         elif val is not None: self._low_tick_ = TickAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
     @overridefield
-    def CloseTick(self) -> TickAPI | None:
+    def CloseTick(self) -> Union[TickAPI, None]:
         return self._close_tick_
     @CloseTick.setter
-    def CloseTick(self, val: int | TickAPI | None) -> None:
+    def CloseTick(self, val: Union[int, TickAPI, None]) -> None:
         if isinstance(val, TickAPI): self._close_tick_ = val
         elif val is not None: self._close_tick_ = TickAPI(UID=val, db=self._db_, autoload=self._autoload_)
 
     @property
-    def RangeTick(self) -> PriceAPI | None:
+    def RangeTick(self) -> Union[PriceAPI, None]:
         h = self._high_tick_
         l = self._low_tick_
         if h is None or l is None or h.Bid is None or l.Bid is None: return None

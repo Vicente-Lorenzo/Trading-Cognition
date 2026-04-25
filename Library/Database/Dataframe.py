@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Union, Any
 
 import numpy as np
 np.set_printoptions(threshold=1000, linewidth=1000)
@@ -45,7 +45,7 @@ class DataframeAPI:
         return flat
 
     @staticmethod
-    def parse(data: Any) -> tuple[list[str] | None, list[Any], bool]:
+    def parse(data: Any) -> tuple[Union[list[str], None], list[Any], bool]:
         if isinstance(data, pl.DataFrame):
             if data.is_empty(): return [], [], True  # type: ignore
             return list(data.columns), data.to_dicts(), True  # type: ignore
@@ -69,7 +69,7 @@ class DataframeAPI:
             return None, [data], False
         return None, [[data]], False
 
-    def frame(self, data: Any, schema: dict = None, legacy: bool | Missing = MISSING) -> Any:
+    def frame(self, data: Any, schema: dict = None, legacy: Union[bool, Missing] = MISSING) -> Any:
         data = self.flatten(data)
         df = pl.DataFrame(data=data, schema=schema, orient="row", strict=False)
         if len(df) > 0: df = df.select([s.shrink_dtype() for s in df.get_columns()])

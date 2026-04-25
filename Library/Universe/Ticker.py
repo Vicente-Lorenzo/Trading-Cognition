@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -30,15 +30,15 @@ class TickerAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Ticker"
 
-    UID: str | None = None
-    Category: InitVar[str | CategoryAPI | None] = field(default=MISSING)
-    BaseAsset: str | None = None
-    BaseName: str | None = None
-    QuoteAsset: str | None = None
-    QuoteName: str | None = None
-    Description: str | None = None
+    UID: Union[str, None] = None
+    Category: InitVar[Union[str, CategoryAPI, None]] = field(default=MISSING)
+    BaseAsset: Union[str, None] = None
+    BaseName: Union[str, None] = None
+    QuoteAsset: Union[str, None] = None
+    QuoteName: Union[str, None] = None
+    Description: Union[str, None] = None
 
-    _category_: CategoryAPI | None = field(default=None, init=False, repr=False)
+    _category_: Union[CategoryAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -72,12 +72,12 @@ class TickerAPI(UniverseAPI):
         return ContractType.Spot
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      category: str | CategoryAPI | None) -> None:
+                      category: Union[str, CategoryAPI, None]) -> None:
         if self.UID: self.UID = self.normalize(self.UID)
         category = coerce(category)
         if isinstance(category, CategoryAPI): self._category_ = category
@@ -87,15 +87,15 @@ class TickerAPI(UniverseAPI):
 
     @property
     @overridefield
-    def Category(self) -> CategoryAPI | None:
+    def Category(self) -> Union[CategoryAPI, None]:
         return self._category_
 
     @Category.setter
-    def Category(self, val: str | CategoryAPI | None) -> None:
+    def Category(self, val: Union[str, CategoryAPI, None]) -> None:
         if isinstance(val, CategoryAPI): self._category_ = val
         elif val is not None: self._category_ = CategoryAPI(UID=val, db=self._db_, autoload=True)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         condition, parameters = None, None
         if not self.UID and self.Description:
             condition, parameters = '"Description" = :value:', {"value": self.Description}
@@ -114,13 +114,13 @@ class TickerAPI(UniverseAPI):
         return self.UID.lower() if self.UID else ""
 
     @property
-    def Dashed(self) -> str | None:
+    def Dashed(self) -> Union[str, None]:
         return f"{self.BaseAsset}-{self.QuoteAsset}" if self.BaseAsset and self.QuoteAsset else None
 
     @property
-    def Slashed(self) -> str | None:
+    def Slashed(self) -> Union[str, None]:
         return f"{self.BaseAsset}/{self.QuoteAsset}" if self.BaseAsset and self.QuoteAsset else None
 
     @property
-    def Underscored(self) -> str | None:
+    def Underscored(self) -> Union[str, None]:
         return f"{self.BaseAsset}_{self.QuoteAsset}" if self.BaseAsset and self.QuoteAsset else None

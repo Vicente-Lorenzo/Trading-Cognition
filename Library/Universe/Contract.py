@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -50,32 +50,32 @@ class ContractAPI(UniverseAPI):
 
     Table: ClassVar[str] = "Contract"
 
-    UID: int | None = None
-    Type: ContractType | str | None = None
+    UID: Union[int, None] = None
+    Type: Union[ContractType, str, None] = None
 
-    Ticker: InitVar[str | TickerAPI | None] = field(default=MISSING)
-    Provider: InitVar[str | ProviderAPI | None] = field(default=MISSING)
+    Ticker: InitVar[Union[str, TickerAPI, None]] = field(default=MISSING)
+    Provider: InitVar[Union[str, ProviderAPI, None]] = field(default=MISSING)
 
-    Digits: int | None = None
-    PointSize: float | None = None
-    PipSize: float | None = None
-    LotSize: int | None = None
-    VolumeMin: float | None = None
-    VolumeMax: float | None = None
-    VolumeStep: float | None = None
-    Commission: float | None = None
-    CommissionMode: CommissionMode | str | None = None
-    SwapLong: float | None = None
-    SwapShort: float | None = None
-    SwapMode: SwapMode | str | None = None
-    SwapExtraDay: Weekday | str | None = None
+    Digits: Union[int, None] = None
+    PointSize: Union[float, None] = None
+    PipSize: Union[float, None] = None
+    LotSize: Union[int, None] = None
+    VolumeMin: Union[float, None] = None
+    VolumeMax: Union[float, None] = None
+    VolumeStep: Union[float, None] = None
+    Commission: Union[float, None] = None
+    CommissionMode: Union[CommissionMode, str, None] = None
+    SwapLong: Union[float, None] = None
+    SwapShort: Union[float, None] = None
+    SwapMode: Union[SwapMode, str, None] = None
+    SwapExtraDay: Union[Weekday, str, None] = None
     SwapSummerTime: int = 22
     SwapWinterTime: int = 21
     SwapPeriod: int = 24
-    Expiry: datetime | None = None
+    Expiry: Union[datetime, None] = None
 
-    _ticker_: TickerAPI | None = field(default=None, init=False, repr=False)
-    _provider_: ProviderAPI | None = field(default=None, init=False, repr=False)
+    _ticker_: Union[TickerAPI, None] = field(default=None, init=False, repr=False)
+    _provider_: Union[ProviderAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -105,13 +105,13 @@ class ContractAPI(UniverseAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      ticker: str | TickerAPI | None,
-                      provider: str | ProviderAPI | None) -> None:
+                      ticker: Union[str, TickerAPI, None],
+                      provider: Union[str, ProviderAPI, None]) -> None:
         ticker = coerce(ticker)
         provider = coerce(provider)
         if isinstance(ticker, TickerAPI): self._ticker_ = ticker
@@ -128,7 +128,7 @@ class ContractAPI(UniverseAPI):
         self.SwapExtraDay = as_enum(Weekday, self.SwapExtraDay)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         row = super()._pull_(overload=overload)
         if not row and self.UID is None and self._ticker_ and self._provider_ and self.Type is not None:
             tval = self.Type.name if isinstance(self.Type, ContractType) else self.Type
@@ -152,18 +152,18 @@ class ContractAPI(UniverseAPI):
 
     @property
     @overridefield
-    def Ticker(self) -> TickerAPI | None:
+    def Ticker(self) -> Union[TickerAPI, None]:
         return self._ticker_
     @Ticker.setter
-    def Ticker(self, val: str | TickerAPI | None) -> None:
+    def Ticker(self, val: Union[str, TickerAPI, None]) -> None:
         if isinstance(val, TickerAPI): self._ticker_ = val
         elif val is not None: self._ticker_ = TickerAPI(UID=TickerAPI.normalize(val), db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def Provider(self) -> ProviderAPI | None:
+    def Provider(self) -> Union[ProviderAPI, None]:
         return self._provider_
     @Provider.setter
-    def Provider(self, val: str | ProviderAPI | None) -> None:
+    def Provider(self, val: Union[str, ProviderAPI, None]) -> None:
         if isinstance(val, ProviderAPI): self._provider_ = val
         elif val is not None: self._provider_ = ProviderAPI(UID=ProviderAPI.normalize(val), db=self._db_, autoload=True)

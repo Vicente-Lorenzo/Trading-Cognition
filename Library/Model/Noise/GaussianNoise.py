@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 from Library.Model.Noise import NoiseAPI
 
@@ -19,14 +20,14 @@ class GaussianNoiseAPI(NoiseAPI):
     """
 
     def __init__(self,
-                 mu: np.ndarray | float,
+                 mu: Union[np.ndarray, float],
                  sigma: float = 0.15,
-                 seed: int | None = None):
+                 seed: Union[int, None] = None):
         super().__init__(seed)
-        self._mu: np.ndarray | float = mu
+        self._mu: Union[np.ndarray, float] = mu
         self._sigma: float = sigma
 
-    def __call__(self) -> np.ndarray | float:
+    def __call__(self) -> Union[np.ndarray, float]:
         if np.isscalar(self._mu):
             return self._mu + self._sigma * self._rng.normal()
         else:

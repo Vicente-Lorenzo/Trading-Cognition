@@ -1,3 +1,4 @@
+from typing import Union
 import clr
 clr.AddReference("cAlgo.API")
 from cAlgo.API import *
@@ -23,8 +24,8 @@ class TradingBot:
         self.console = console
         self.telegram = telegram
         self.file = file
-        self.system: TradingSystemAPI | None = None
-        self._log: HandlerAPI | None = None
+        self.system: Union[TradingSystemAPI, None] = None
+        self._log: Union[HandlerAPI, None] = None
 
     def on_start(self) -> None:
         broker = self.api.Account.BrokerName.replace(" ", "")

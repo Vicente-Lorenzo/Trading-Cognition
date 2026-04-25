@@ -1,3 +1,4 @@
+from typing import Union
 import threading
 from datetime import datetime, timezone
 
@@ -19,17 +20,17 @@ class MarketAPI(ServiceAPI):
     _PRICE_SCALE_ = 100000.0
 
     @classmethod
-    def _timeframe_id_(cls, value: str | int) -> int:
+    def _timeframe_id_(cls, value: Union[str, int]) -> int:
         if isinstance(value, int): return value
         return cls._TIMEFRAME_MAP_[str(value).upper()]
 
     @classmethod
-    def _timeframe_uid_(cls, value: int | str) -> str:
+    def _timeframe_uid_(cls, value: Union[int, str]) -> str:
         if isinstance(value, str): return value.upper()
         return cls._TIMEFRAME_REVERSE_.get(int(value), str(value))
 
     @classmethod
-    def _quote_(cls, value: str | int) -> int:
+    def _quote_(cls, value: Union[str, int]) -> int:
         if isinstance(value, int): return value
         return cls._QUOTE_MAP_[str(value).upper()]
 
@@ -42,8 +43,8 @@ class MarketAPI(ServiceAPI):
               symbol: int,
               start: datetime,
               stop: datetime = None,
-              quote: str | int = "BID",
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[TickAPI]:
+              quote: Union[str, int] = "BID",
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[TickAPI]]:
         from ctrader_open_api import Protobuf
         stop = stop or datetime.now(timezone.utc)
         quote_id = self._quote_(quote)
@@ -93,9 +94,9 @@ class MarketAPI(ServiceAPI):
              symbol: int,
              start: datetime,
              stop: datetime = None,
-             timeframe: str | int = "M1",
-             count: int | None = None,
-             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[BarAPI]:
+             timeframe: Union[str, int] = "M1",
+             count: Union[int, None] = None,
+             legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[BarAPI]]:
         from ctrader_open_api import Protobuf
         stop = stop or datetime.now(timezone.utc)
         tf_id = self._timeframe_id_(timeframe)
@@ -136,7 +137,7 @@ class MarketAPI(ServiceAPI):
     def depth(self,
               symbol: int,
               timeout: float = 5.0,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         from ctrader_open_api import Protobuf
         sid = int(symbol)
         def _fetch_():

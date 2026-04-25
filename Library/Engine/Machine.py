@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Logging import HandlerAPI
 
 from Library.Utility import *
@@ -5,12 +6,12 @@ from Library.Engine import StateAPI, TransitionAPI
 
 class MachineAPI:
 
-    def __init__(self, name: str | None):
+    def __init__(self, name: Union[str, None]):
         self.at = None
         self._states: list[StateAPI] = []
         self._log: HandlerAPI = HandlerAPI(Class=self.__class__.__name__, Subclass=name)
 
-    def create_state(self, name: str | None, end: bool) -> StateAPI:
+    def create_state(self, name: Union[str, None], end: bool) -> StateAPI:
         state = StateAPI(name, end)
         self._states.append(state)
         self.at = state if not self.at else self.at

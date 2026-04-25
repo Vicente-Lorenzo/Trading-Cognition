@@ -1,3 +1,4 @@
+from typing import Union
 from enum import Enum
 from dataclasses import dataclass, field
 
@@ -31,8 +32,8 @@ class OpenBuyAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.OpenBuy, init=False)
     PositionType: PositionType
     Volume: float
-    StopLoss: float | None
-    TakeProfit: float | None
+    StopLoss: Union[float, None]
+    TakeProfit: Union[float, None]
 
     def __post_init__(self):
         self.PositionType = PositionType(self.PositionType)
@@ -44,8 +45,8 @@ class OpenSellAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.OpenSell, init=False)
     PositionType: PositionType
     Volume: float
-    StopLoss: float | None
-    TakeProfit: float | None
+    StopLoss: Union[float, None]
+    TakeProfit: Union[float, None]
 
     def __post_init__(self):
         self.PositionType = PositionType(self.PositionType)
@@ -68,25 +69,25 @@ class ModifySellVolumeAction(DataclassAPI):
 class ModifyBuyStopLossAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.ModifyBuyStopLoss, init=False)
     PositionID: int
-    StopLoss: float | None
+    StopLoss: Union[float, None]
 
 @dataclass(slots=True)
 class ModifySellStopLossAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.ModifySellStopLoss, init=False)
     PositionID: int
-    StopLoss: float | None
+    StopLoss: Union[float, None]
 
 @dataclass(slots=True)
 class ModifyBuyTakeProfitAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.ModifyBuyTakeProfit, init=False)
     PositionID: int
-    TakeProfit: float | None
+    TakeProfit: Union[float, None]
 
 @dataclass(slots=True)
 class ModifySellTakeProfitAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.ModifySellTakeProfit, init=False)
     PositionID: int
-    TakeProfit: float | None
+    TakeProfit: Union[float, None]
 
 @dataclass(slots=True)
 class CloseBuyAction(DataclassAPI):
@@ -101,7 +102,7 @@ class CloseSellAction(DataclassAPI):
 @dataclass(slots=True)
 class AskAboveTargetAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.AskAboveTarget, init=False)
-    Ask: float | None
+    Ask: Union[float, None]
 
     def __post_init__(self):
         self.Ask = cast(self.Ask, float, None)
@@ -109,7 +110,7 @@ class AskAboveTargetAction(DataclassAPI):
 @dataclass(slots=True)
 class AskBelowTargetAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.AskBelowTarget, init=False)
-    Ask: float | None
+    Ask: Union[float, None]
 
     def __post_init__(self):
         self.Ask = cast(self.Ask, float, None)
@@ -117,7 +118,7 @@ class AskBelowTargetAction(DataclassAPI):
 @dataclass(slots=True)
 class BidAboveTargetAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.BidAboveTarget, init=False)
-    Bid: float | None
+    Bid: Union[float, None]
 
     def __post_init__(self):
         self.Bid = cast(self.Bid, float, None)
@@ -125,9 +126,9 @@ class BidAboveTargetAction(DataclassAPI):
 @dataclass(slots=True)
 class BidBelowTargetAction(DataclassAPI):
     ActionID: ActionID = field(default=ActionID.BidBelowTarget, init=False)
-    Bid: float | None
+    Bid: Union[float, None]
 
     def __post_init__(self):
         self.Bid = cast(self.Bid, float, None)
 
-Action = CompleteAction | OpenBuyAction | OpenSellAction | ModifyBuyVolumeAction | ModifyBuyStopLossAction | ModifyBuyTakeProfitAction | ModifySellVolumeAction | ModifySellStopLossAction | ModifySellTakeProfitAction | CloseBuyAction | CloseSellAction | AskAboveTargetAction | AskBelowTargetAction | BidAboveTargetAction | BidBelowTargetAction
+Action = Union[CompleteAction, OpenBuyAction, OpenSellAction, ModifyBuyVolumeAction, ModifyBuyStopLossAction, ModifyBuyTakeProfitAction, ModifySellVolumeAction, ModifySellStopLossAction, ModifySellTakeProfitAction, CloseBuyAction, CloseSellAction, AskAboveTargetAction, AskBelowTargetAction, BidAboveTargetAction, BidBelowTargetAction]

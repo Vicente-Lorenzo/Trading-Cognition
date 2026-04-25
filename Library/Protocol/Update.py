@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Union, TYPE_CHECKING
 from enum import Enum
 from dataclasses import dataclass
 
@@ -91,4 +91,4 @@ class TickUpdate(DataclassAPI):
     Manager: ManagerAPI
     Tick: TickAPI
 
-Update = CompleteUpdate | AccountUpdate | SecurityUpdate | PositionUpdate | TradeUpdate | PositionTradeUpdate | BarUpdate | TickUpdate
+Update = Union[CompleteUpdate, AccountUpdate, SecurityUpdate, PositionUpdate, TradeUpdate, PositionTradeUpdate, BarUpdate, TickUpdate]

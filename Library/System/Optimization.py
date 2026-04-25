@@ -5,7 +5,7 @@ import threading
 import numpy as np
 
 from tqdm import tqdm
-from typing import Type, Callable
+from typing import Union, Type, Callable
 from concurrent.futures import as_completed, ThreadPoolExecutor
 
 from datetime import date
@@ -43,8 +43,8 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
                  strategy: Type[StrategyAPI],
                  parameters: Parameters,
                  configuration: Parameters,
-                 start: str | date,
-                 stop: str | date,
+                 start: Union[str, date],
+                 stop: Union[str, date],
                  account: tuple[AssetType, float, float],
                  spread: tuple[SpreadType, float],
                  commission: tuple[CommissionType, float],
@@ -53,7 +53,7 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
                  validation: int,
                  testing: int,
                  fitness: str,
-                 threads: int | None) -> None:
+                 threads: Union[int, None]) -> None:
 
         super().__init__(
             broker=broker,
@@ -93,7 +93,7 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
         self._log.debug(lambda: f"Working with {threads} threads")
 
     @staticmethod
-    def unpack_walk_forward_stages(start: date, stop: date, training: int, validation: int, testing: int) -> list[tuple[tuple[date, date] | None, tuple[date, date] | None]]:
+    def unpack_walk_forward_stages(start: date, stop: date, training: int, validation: int, testing: int) -> list[tuple[Union[tuple[date, date], None], tuple[date, date] | None]]:
         walk_forward = []
         current_start: date = start
         step: int = min(training, validation) if training > 0 and validation > 0 else training or validation
@@ -115,8 +115,8 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
         test_stop: date = stop
         test_start: date = max(start, (test_stop - relativedelta(months=testing)).replace(day=1)) if testing > 0 else None
         final_training_start: date = max(start, stop - relativedelta(months=training)).replace(day=1) if training > 0 else None
-        final_training: tuple[date, date] | None = (final_training_start, stop) if final_training_start else None
-        final_testing: tuple[date, date] | None = (test_start, test_stop) if test_start else None
+        final_training: Union[tuple[date, date], None] = (final_training_start, stop) if final_training_start else None
+        final_testing: Union[tuple[date, date], None] = (test_start, test_stop) if test_start else None
 
         walk_forward.append((final_training, final_testing))
 
@@ -195,7 +195,7 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
         return dof_stage
 
     @staticmethod
-    def unpack_coarse_to_fine_parameters(dof_stage: dict, ctf_params: list[Parameters]) -> dict | None:
+    def unpack_coarse_to_fine_parameters(dof_stage: dict, ctf_params: list[Parameters]) -> Union[dict, None]:
         ctf_runs = len(ctf_params)
         def unpack_engine(engine_name: str, engine_parameters: Parameters) -> tuple[bool, dict]:
             def unpack_combos(tid: str, tparams: dict, tconstraints: Callable) -> tuple[bool, list]:
@@ -348,9 +348,9 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
 
         results: list[dict] = []
 
-        best_id: int | None = None
+        best_id: Union[int, None] = None
         best_fitness: float = float("-inf")
-        best_parameters: Parameters | None = None
+        best_parameters: Union[Parameters, None] = None
 
         self._log.level(VerboseType.Exception)
 
@@ -393,10 +393,10 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
         results: list[dict] = []
         parameters: list[Parameters] = []
 
-        last_btid: int | None = None
-        last_fitness: float | None = None
-        last_parameters: Parameters | None = None
-        last_df: pl.DataFrame | None = None
+        last_btid: Union[int, None] = None
+        last_fitness: Union[float, None] = None
+        last_parameters: Union[Parameters, None] = None
+        last_df: Union[pl.DataFrame, None] = None
 
         ctf_id = 0
         while ctf_stage := self.unpack_coarse_to_fine_parameters(ctf_stage, parameters):
@@ -432,10 +432,10 @@ class OptimizationSystemAPI(BacktestingSystemAPI):
         results: list[dict] = []
         parameters: list[Parameters] = []
 
-        last_btid: int | None = None
-        last_fitness: float | None = None
-        last_parameters: Parameters | None = None
-        last_df: pl.DataFrame | None = None
+        last_btid: Union[int, None] = None
+        last_fitness: Union[float, None] = None
+        last_parameters: Union[Parameters, None] = None
+        last_df: Union[pl.DataFrame, None] = None
 
         for dof_id, dof_stage in enumerate(self._dof_stages, start=1):
             dof_stage = self.pack_degrees_of_freedom_parameters(dof_stage, parameters)

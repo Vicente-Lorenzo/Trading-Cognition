@@ -1,5 +1,5 @@
 import oracledb
-from typing import Callable, Any
+from typing import Union, Callable, Any
 from collections.abc import Sequence
 
 from Library.Database.Dataframe import pl
@@ -98,9 +98,9 @@ class OracleDatabaseAPI(DatabaseAPI):
                  user: str = "ORCL",
                  password: str = "ORCL",
                  admin: bool = False,
-                 database: str | None = None,
-                 schema: str | None = None,
-                 table: str | None = None,
+                 database: Union[str, None] = None,
+                 schema: Union[str, None] = None,
+                 table: Union[str, None] = None,
                  legacy: bool = False,
                  migrate: bool = False,
                  autocommit: bool = True) -> None:
@@ -158,7 +158,7 @@ class OracleDatabaseAPI(DatabaseAPI):
     def _limit_(self, sql: str, limit: int) -> str:
         return f"{sql} FETCH FIRST {limit} ROWS ONLY"
 
-    def _check_(self, structure: dict | None = None) -> str:
+    def _check_(self, structure: Union[dict, None] = None) -> str:
         structure = structure if structure is not None else self._STRUCTURE_
         values = []
         for name, dtype in structure.items():

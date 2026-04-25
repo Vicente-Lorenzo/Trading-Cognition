@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Union, Final
 
 class Missing:
     def __repr__(self) -> str: return "Missing"
@@ -151,13 +151,13 @@ def getproperty(obj: object, name: str, default = None, *, mro: bool = False):
             return c.__dict__[name]
     return default
 
-def getvariable(value: object, scope: dict) -> str | None:
+def getvariable(value: object, scope: dict) -> Union[str, None]:
     for name, obj in scope.items():
         if obj is value:
             return name
     return None
 
-def findvariable(value: object) -> str | None:
+def findvariable(value: object) -> Union[str, None]:
     import inspect
     frame = inspect.currentframe()
     try:
@@ -180,7 +180,7 @@ def cast(cast_value, cast_type: type, cast_default):
 def equals(a: float, b: float, rel: float = 1e-12, abs_: float = 1e-12) -> bool:
     return abs(a - b) <= max(rel * max(1.0, abs(a), abs(b)), abs_)
 
-def contains(text: str, substrings: str | tuple | list, case_sensitive: bool = False) -> bool:
+def contains(text: str, substrings: Union[str, tuple, list], case_sensitive: bool = False) -> bool:
     if isinstance(substrings, str):
         subs: list[str] = [substrings]
     else:

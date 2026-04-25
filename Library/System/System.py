@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Union, Type
 from abc import ABC, abstractmethod
 from threading import Thread
 
@@ -34,13 +34,13 @@ class SystemAPI(Thread, ABC):
         
         self.parameters: Parameters = parameters
 
-        self.strategy: StrategyAPI | None = None
-        self.analyst: AnalystAPI | None = None
-        self.manager: ManagerAPI | None = None
+        self.strategy: Union[StrategyAPI, None] = None
+        self.analyst: Union[AnalystAPI, None] = None
+        self.manager: Union[ManagerAPI, None] = None
         
-        self.individual_trades: pl.DataFrame | None = None
-        self.aggregated_trades: pl.DataFrame | None = None
-        self.statistics: pl.DataFrame | None = None
+        self.individual_trades: Union[pl.DataFrame, None] = None
+        self.aggregated_trades: Union[pl.DataFrame, None] = None
+        self.statistics: Union[pl.DataFrame, None] = None
 
         self._log: HandlerAPI = HandlerAPI(Class=self.__class__.__name__, Subclass="System Management")
 
@@ -61,23 +61,23 @@ class SystemAPI(Thread, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def send_action_open(self, action: OpenBuyAction | OpenSellAction) -> None:
+    def send_action_open(self, action: Union[OpenBuyAction, OpenSellAction]) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def send_action_modify_volume(self, action: ModifyBuyVolumeAction | ModifySellVolumeAction) -> None:
+    def send_action_modify_volume(self, action: Union[ModifyBuyVolumeAction, ModifySellVolumeAction]) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def send_action_modify_stop_loss(self, action: ModifyBuyStopLossAction | ModifySellStopLossAction) -> None:
+    def send_action_modify_stop_loss(self, action: Union[ModifyBuyStopLossAction, ModifySellStopLossAction]) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def send_action_modify_take_profit(self, action: ModifyBuyTakeProfitAction | ModifySellTakeProfitAction) -> None:
+    def send_action_modify_take_profit(self, action: Union[ModifyBuyTakeProfitAction, ModifySellTakeProfitAction]) -> None:
         raise NotImplementedError
     
     @abstractmethod
-    def send_action_close(self, action: CloseBuyAction | CloseSellAction) -> None:
+    def send_action_close(self, action: Union[CloseBuyAction, CloseSellAction]) -> None:
         raise NotImplementedError
 
     @abstractmethod

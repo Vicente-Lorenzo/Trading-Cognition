@@ -1,4 +1,4 @@
-from typing import TextIO
+from typing import Union, TextIO
 # import credentials_wrapper as cw
 
 from Library.Logging.Logging import VerboseLevel
@@ -31,7 +31,7 @@ class BucketLoggingAPI(FileLoggingAPI):
             cls._bucket_link = bucket_link
 
     @classmethod
-    def get_file_hyperlink(cls) -> str | None:
+    def get_file_hyperlink(cls) -> Union[str, None]:
         with cls._class_lock_:
             if not cls._bucket_name_: return super().get_file_hyperlink()
             return cls._bucket_link + inspect_path(cls._file_path_)

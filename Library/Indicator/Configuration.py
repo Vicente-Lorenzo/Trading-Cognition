@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable
+from typing import Union, Callable
 from dataclasses import dataclass, field
 
 from Library.Database.Dataclass import DataclassAPI
@@ -25,7 +25,7 @@ class IndicatorConfigurationAPI(DataclassAPI):
     Name: str = field(init=True, repr=True)
     IndicatorType: IndicatorType = field(init=True, repr=True)
     Input: Callable = field(init=True, repr=True)
-    Parameters: dict[str, list[list[int | float]]] = field(init=True, repr=True)
+    Parameters: dict[str, list[list[Union[int, float]]]] = field(init=True, repr=True)
     Constraints: Callable = field(init=True, repr=True)
     Function: Callable = field(init=True, repr=True)
     Output: list[str] = field(init=True, repr=True)

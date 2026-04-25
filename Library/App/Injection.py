@@ -1,7 +1,7 @@
 import threading
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Any
 from dash.exceptions import PreventUpdate
+from typing import Union, Callable, Tuple, Any
 
 from Library.App.Session import TriggerAPI
 from Library.App.Callback import Input, Output, State, InjectionType
@@ -21,7 +21,7 @@ class InjectionAPI(ABC):
     def py(payload: dict) -> Any:
         return None
     @staticmethod
-    def js(app) -> str | None:
+    def js(app) -> Union[str, None]:
         return None
     @staticmethod
     def running() -> list[tuple]:
@@ -29,7 +29,7 @@ class InjectionAPI(ABC):
     @staticmethod
     def cancel() -> list[Any]:
         return []
-    def __call__(self, app, is_page: bool) -> Tuple[Callable | None, str | None]:
+    def __call__(self, app, is_page: bool) -> Tuple[Union[Callable, None], str | None]:
         return self.py, self.js(app)
     def register(self, page: str = None) -> None:
         with self.lock:
@@ -42,7 +42,7 @@ class InjectionAPI(ABC):
     def reset(self) -> None:
         with self.lock:
             self.index = 0
-    def count(self, app: bool = True, page: bool | str = False) -> int:
+    def count(self, app: bool = True, page: Union[bool, str] = False) -> int:
         with self.lock:
             total = 0
             if app:
@@ -114,7 +114,7 @@ class OnSyncInjectionAPI(InjectionAPI, ABC):
         return TriggerAPI(**trigger).trigger().dict()
     def js(self, app) -> str:
         return app.asset(path="Callbacks/Trigger.js", url=False)
-    def __call__(self, app, is_page: bool) -> Tuple[Callable | None, str | None]:
+    def __call__(self, app, is_page: bool) -> Tuple[Union[Callable, None], str | None]:
         return (self.py, self.js(app)) if is_page else (None, None)
 
 class OnEnterInjectionAPI(OnSyncInjectionAPI):

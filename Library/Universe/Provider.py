@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey
 from Library.Database.Datapoint import DatapointAPI
 from Library.Database.Enumeration import Enumeration, as_enum
-from Library.Universe.Universe import UniverseAPI
 
 if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
 
@@ -33,10 +32,10 @@ class ProviderAPI(DatapointAPI):
     Schema: ClassVar[str] = "Universe"
     Table: ClassVar[str] = "Provider"
 
-    UID: str | None = None
-    Platform: Platform | str | None = None
-    Name: str | None = None
-    Abbreviation: str | None = None
+    UID: Union[str, None] = None
+    Platform: Union[Platform, str, None] = None
+    Name: Union[str, None] = None
+    Abbreviation: Union[str, None] = None
 
     @property
     def Structure(self) -> dict:
@@ -53,7 +52,7 @@ class ProviderAPI(DatapointAPI):
         return uid.replace("-", " ")
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
@@ -65,7 +64,7 @@ class ProviderAPI(DatapointAPI):
             self.UID = f"{self.Abbreviation} ({self.Platform.name})"
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         condition, parameters = None, None
         if not self.UID and (self.Name or self.Abbreviation):
             clauses, params = [], {}

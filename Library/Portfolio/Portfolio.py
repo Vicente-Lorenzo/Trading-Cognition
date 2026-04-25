@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
 from datetime import datetime
-from typing import ClassVar, TYPE_CHECKING
 from dataclasses import dataclass
+from collections.abc import Sequence
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Datapoint import DatapointAPI
@@ -27,7 +27,7 @@ class PortfolioAPI(DatapointAPI):
     Positions: Sequence[PositionAPI] = ()
 
     @property
-    def ROI(self) -> float | None:
+    def ROI(self) -> Union[float, None]:
         if not self.Trades: return None
         entry_b = self.Trades[0].EntryBalance
         if not entry_b: return None
@@ -35,7 +35,7 @@ class PortfolioAPI(DatapointAPI):
         return net_pnl / entry_b
 
     @property
-    def AnnualizedReturn(self) -> float | None:
+    def AnnualizedReturn(self) -> Union[float, None]:
         roi = self.ROI
         if roi is None or not self.Trades: return None
         first, last = self.Trades[0].EntryTimestamp, self.Trades[-1].ExitTimestamp
@@ -45,13 +45,13 @@ class PortfolioAPI(DatapointAPI):
         return ((1.0 + roi) ** (365.0 / days)) - 1.0
 
     @property
-    def LogReturn(self) -> float | None:
+    def LogReturn(self) -> Union[float, None]:
         roi = self.ROI
         if roi is None or roi <= -1.0: return None
         return math.log1p(roi)
 
     @property
-    def StandardDeviation(self) -> float | None:
+    def StandardDeviation(self) -> Union[float, None]:
         if not self.Trades or len(self.Trades) < 2: return None
         returns = [t.NetPnL.Return for t in self.Trades if t.NetPnL and t.NetPnL.Return is not None]
         if len(returns) < 2: return None
@@ -60,12 +60,12 @@ class PortfolioAPI(DatapointAPI):
         return math.sqrt(var)
 
     @property
-    def Volatility(self) -> float | None:
+    def Volatility(self) -> Union[float, None]:
         std = self.StandardDeviation
         return std * math.sqrt(252.0) if std is not None else None
 
     @property
-    def ValueAtRisk(self) -> float | None:
+    def ValueAtRisk(self) -> Union[float, None]:
         if not self.Trades: return None
         returns = sorted([t.NetPnL.Return for t in self.Trades if t.NetPnL and t.NetPnL.Return is not None])
         if not returns: return None
@@ -73,7 +73,7 @@ class PortfolioAPI(DatapointAPI):
         return returns[index]
 
     @property
-    def RiskRewardRatio(self) -> float | None:
+    def RiskRewardRatio(self) -> Union[float, None]:
         winners = [t.NetPnL.Return for t in self.Trades if t.NetPnL and t.NetPnL.Return is not None and t.NetPnL.Return > 0]
         losers = [abs(t.NetPnL.Return) for t in self.Trades if t.NetPnL and t.NetPnL.Return is not None and t.NetPnL.Return < 0]
         if not winners or not losers: return None
@@ -83,14 +83,14 @@ class PortfolioAPI(DatapointAPI):
         return avg_w / avg_l
 
     @property
-    def SharpeRatio(self) -> float | None:
+    def SharpeRatio(self) -> Union[float, None]:
         ret = self.AnnualizedReturn
         vol = self.Volatility
         if ret is None or not vol: return None
         return ret / vol
 
     @property
-    def SortinoRatio(self) -> float | None:
+    def SortinoRatio(self) -> Union[float, None]:
         ret = self.AnnualizedReturn
         if ret is None or not self.Trades: return None
         returns = [t.NetPnL.Return for t in self.Trades if t.NetPnL and t.NetPnL.Return is not None and t.NetPnL.Return < 0]
@@ -102,7 +102,7 @@ class PortfolioAPI(DatapointAPI):
         return ret / downside_vol
 
     @property
-    def CalmarRatio(self) -> float | None:
+    def CalmarRatio(self) -> Union[float, None]:
         ret = self.AnnualizedReturn
         if ret is None or not self.Trades: return None
         drawdowns = [t.MaxDrawDownPnL.Return for t in self.Trades if t.MaxDrawDownPnL and t.MaxDrawDownPnL.Return is not None]
@@ -112,49 +112,49 @@ class PortfolioAPI(DatapointAPI):
         return ret / abs(max_dd)
 
     @staticmethod
-    def save_accounts(data: AccountAPI | Sequence[AccountAPI], by: str = "Autosave") -> None:
+    def save_accounts(data: Union[AccountAPI, Sequence[AccountAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for acc in data: acc.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_accounts(data: AccountAPI | Sequence[AccountAPI]) -> None:
+    def load_accounts(data: Union[AccountAPI, Sequence[AccountAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for acc in data: acc.load()
         else: data.load()
 
     @staticmethod
-    def save_orders(data: OrderAPI | Sequence[OrderAPI], by: str = "Autosave") -> None:
+    def save_orders(data: Union[OrderAPI, Sequence[OrderAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for ord in data: ord.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_orders(data: OrderAPI | Sequence[OrderAPI]) -> None:
+    def load_orders(data: Union[OrderAPI, Sequence[OrderAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for ord in data: ord.load()
         else: data.load()
 
     @staticmethod
-    def save_positions(data: PositionAPI | Sequence[PositionAPI], by: str = "Autosave") -> None:
+    def save_positions(data: Union[PositionAPI, Sequence[PositionAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for pos in data: pos.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_positions(data: PositionAPI | Sequence[PositionAPI]) -> None:
+    def load_positions(data: Union[PositionAPI, Sequence[PositionAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for pos in data: pos.load()
         else: data.load()
 
     @staticmethod
-    def save_trades(data: TradeAPI | Sequence[TradeAPI], by: str = "Autosave") -> None:
+    def save_trades(data: Union[TradeAPI, Sequence[TradeAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for tr in data: tr.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_trades(data: TradeAPI | Sequence[TradeAPI]) -> None:
+    def load_trades(data: Union[TradeAPI, Sequence[TradeAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for tr in data: tr.load()
         else: data.load()
@@ -172,12 +172,12 @@ class PortfolioAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_accounts(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_accounts(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Portfolio.Account import AccountAPI
         db.upsert(schema=AccountAPI.Schema, table=AccountAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_orders(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
+    def pull_orders(db: DatabaseAPI, start: Union[datetime, None] = None, stop: Union[datetime, None] = None) -> pl.DataFrame:
         from Library.Portfolio.Order import OrderAPI
         sql = f'''
         SELECT o.*,
@@ -197,12 +197,12 @@ class PortfolioAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_orders(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_orders(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Portfolio.Order import OrderAPI
         db.upsert(schema=OrderAPI.Schema, table=OrderAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_positions(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
+    def pull_positions(db: DatabaseAPI, start: Union[datetime, None] = None, stop: Union[datetime, None] = None) -> pl.DataFrame:
         from Library.Portfolio.Position import PositionAPI
         sql = f'''
         SELECT pos.*,
@@ -220,12 +220,12 @@ class PortfolioAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_positions(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_positions(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Portfolio.Position import PositionAPI
         db.upsert(schema=PositionAPI.Schema, table=PositionAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def pull_trades(db: DatabaseAPI, start: datetime | None = None, stop: datetime | None = None) -> pl.DataFrame:
+    def pull_trades(db: DatabaseAPI, start: Union[datetime, None] = None, stop: Union[datetime, None] = None) -> pl.DataFrame:
         from Library.Portfolio.Trade import TradeAPI
         sql = f'''
         SELECT t.*,
@@ -245,6 +245,6 @@ class PortfolioAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_trades(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_trades(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Portfolio.Trade import TradeAPI
         db.upsert(schema=TradeAPI.Schema, table=TradeAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])

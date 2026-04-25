@@ -1,3 +1,4 @@
+from typing import Union
 from pathlib import Path
 
 def is_readable(path: Path) -> bool:
@@ -126,7 +127,7 @@ def copy(dst: Path, src: Path, *, safe: bool = True) -> bool:
             return False
         raise
 
-def smartlink(dst: Path, src: Path, *, safe: bool = True) -> str | None:
+def smartlink(dst: Path, src: Path, *, safe: bool = True) -> Union[str, None]:
     if symlink(dst, src, safe=True):
         return "symlink"
     if hardlink(dst, src, safe=True):

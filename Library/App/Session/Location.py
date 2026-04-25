@@ -1,3 +1,4 @@
+from typing import Union
 from dataclasses import dataclass, field
 
 from Library.App.Session.Storage import StorageAPI
@@ -7,7 +8,7 @@ class LocationAPI(StorageAPI):
 
     history: list[str] = field(default_factory=list, init=True, repr=True)
 
-    def current(self) -> str | None:
+    def current(self) -> Union[str, None]:
         if 0 <= self.index < len(self.history):
             return self.history[self.index]
         return None
@@ -24,7 +25,7 @@ class LocationAPI(StorageAPI):
         self.history.append(path)
         self.index = len(self.history) - 1
 
-    def backward(self, *, step: bool = False) -> str | None:
+    def backward(self, *, step: bool = False) -> Union[str, None]:
         if self.index <= 0:
             return None
         if not step:
@@ -32,7 +33,7 @@ class LocationAPI(StorageAPI):
         self.index -= 1
         return self.history[self.index]
 
-    def forward(self, *, step: bool = False) -> str | None:
+    def forward(self, *, step: bool = False) -> Union[str, None]:
         if self.index < 0 or self.index >= len(self.history) - 1:
             return None
         if not step:

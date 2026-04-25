@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any
+from typing import Union, Any
 from dataclasses import dataclass, field
 
 from dash import html, dcc
@@ -24,38 +24,38 @@ def parse_style(basestyle: dict = None, classstyle: dict = None) -> dict:
 @dataclass(kw_only=True)
 class ComponentAPI(Component, ABC):
 
-    id: dict | None = field(default_factory=dict)
-    basename: str | None = field(default="component")
-    classname: str | None = field(default_factory=str)
-    typename: str | None = field(default_factory=str)
-    stylename: str | None = field(default_factory=str)
-    style: dict | None = field(default_factory=dict)
-    hidden: bool | None = field(default=None)
+    id: Union[dict, None] = field(default_factory=dict)
+    basename: Union[str, None] = field(default="component")
+    classname: Union[str, None] = field(default_factory=str)
+    typename: Union[str, None] = field(default_factory=str)
+    stylename: Union[str, None] = field(default_factory=str)
+    style: Union[dict, None] = field(default_factory=dict)
+    hidden: Union[bool, None] = field(default=None)
 
-    border_color: str | None = field(default=None)
-    border_style: str | None = field(default=None)
-    border_width: str | None = field(default=None)
-    border_radius: str | None = field(default=None)
+    border_color: Union[str, None] = field(default=None)
+    border_style: Union[str, None] = field(default=None)
+    border_width: Union[str, None] = field(default=None)
+    border_radius: Union[str, None] = field(default=None)
 
-    outline_color: str | None = field(default=None)
-    outline_style: str | None = field(default=None)
-    outline_width: str | None = field(default=None)
-    outline_offset: str | None = field(default=None)
+    outline_color: Union[str, None] = field(default=None)
+    outline_style: Union[str, None] = field(default=None)
+    outline_width: Union[str, None] = field(default=None)
+    outline_offset: Union[str, None] = field(default=None)
 
-    background: str | None = field(default=None)
-    size: str | None = field(default=None)
+    background: Union[str, None] = field(default=None)
+    size: Union[str, None] = field(default=None)
 
-    padding_top: str | None = field(default=None)
-    padding_right: str | None = field(default=None)
-    padding_bottom: str | None = field(default=None)
-    padding_left: str | None = field(default=None)
+    padding_top: Union[str, None] = field(default=None)
+    padding_right: Union[str, None] = field(default=None)
+    padding_bottom: Union[str, None] = field(default=None)
+    padding_left: Union[str, None] = field(default=None)
 
-    margin_top: str | None = field(default=None)
-    margin_right: str | None = field(default=None)
-    margin_bottom: str | None = field(default=None)
-    margin_left: str | None = field(default=None)
+    margin_top: Union[str, None] = field(default=None)
+    margin_right: Union[str, None] = field(default=None)
+    margin_bottom: Union[str, None] = field(default=None)
+    margin_left: Union[str, None] = field(default=None)
 
-    element: Component | Any = field(default=None)
+    element: Union[Component, Any] = field(default=None)
     builder: type[Component] = field(default=html.Div)
 
     def __post_init__(self):
@@ -102,7 +102,7 @@ class ComponentAPI(Component, ABC):
         return style
 
     @staticmethod
-    def flatten(element: Component | list) -> list[Component]:
+    def flatten(element: Union[Component, list]) -> list[Component]:
         element = [element] if not isinstance(element, (tuple, list)) else element
         elements = []
         for e in element:
@@ -137,7 +137,7 @@ class ComponentAPI(Component, ABC):
 @dataclass(kw_only=True)
 class IconAPI(ComponentAPI):
 
-    classname: str | None = field(default="icon")
+    classname: Union[str, None] = field(default="icon")
     builder: type[Component] = field(default=html.I)
 
     icon: str = field(default=None)
@@ -149,12 +149,12 @@ class IconAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class TextAPI(ComponentAPI):
 
-    classname: str | None = field(default="text")
+    classname: Union[str, None] = field(default="text")
     builder: type[Component] = field(default=html.Span)
 
     text: str = field(default=None)
 
-    font_weight: str | int = field(default=None)
+    font_weight: Union[str, int] = field(default=None)
     font_color: str = field(default=None)
     font_size: str = field(default=None)
     font_family: str = field(default=None)
@@ -177,13 +177,13 @@ class TextAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class LabelAPI(TextAPI):
 
-    classname: str | None = field(default="label")
+    classname: Union[str, None] = field(default="label")
     builder: type[Component] = field(default=dbc.FormText)
 
 @dataclass(kw_only=True)
 class MarkdownAPI(TextAPI):
 
-    classname: str | None = field(default="markdown")
+    classname: Union[str, None] = field(default="markdown")
     builder: type[Component] = field(default=dcc.Markdown)
 
     allow_html: bool = field(default=None)
@@ -198,7 +198,7 @@ class MarkdownAPI(TextAPI):
 @dataclass(kw_only=True)
 class IntervalAPI(ComponentAPI):
 
-    classname: str | None = field(default="interval")
+    classname: Union[str, None] = field(default="interval")
     builder: type[Component] = field(default=dcc.Interval)
 
     interval: int = field(default=None)
@@ -219,7 +219,7 @@ class IntervalAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class StorageAPI(ComponentAPI):
 
-    classname: str | None = field(default="store")
+    classname: Union[str, None] = field(default="store")
     builder: type[Component] = field(default=dcc.Store)
 
     data: dict = field(default_factory=dict)
@@ -240,7 +240,7 @@ class StorageAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class DownloadAPI(ComponentAPI):
 
-    classname: str | None = field(default="download")
+    classname: Union[str, None] = field(default="download")
     builder: type[Component] = field(default=dcc.Download)
 
     def __post_init__(self):
@@ -250,7 +250,7 @@ class DownloadAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class UploadAPI(ComponentAPI):
 
-    classname: str | None = field(default="upload")
+    classname: Union[str, None] = field(default="upload")
     builder: type[Component] = field(default=dcc.Upload)
 
     accept: str = field(default=None)
@@ -271,7 +271,7 @@ class UploadAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class ButtonAPI(ComponentAPI):
 
-    classname: str | None = field(default="button")
+    classname: Union[str, None] = field(default="button")
 
     label: list[Component] = field(default_factory=list)
     title: str = field(default=None)
@@ -281,10 +281,10 @@ class ButtonAPI(ComponentAPI):
     disabled: bool = field(default=None)
     href: str = field(default=None)
     external: bool = field(default=None)
-    download: DownloadAPI | dict = field(default=None)
-    upload: UploadAPI | dict = field(default=None)
-    asyncer: StorageAPI | dict = field(default=None)
-    syncer: StorageAPI | dict = field(default=None)
+    download: Union[DownloadAPI, dict] = field(default=None)
+    upload: Union[UploadAPI, dict] = field(default=None)
+    asyncer: Union[StorageAPI, dict] = field(default=None)
+    syncer: Union[StorageAPI, dict] = field(default=None)
 
     def arguments(self) -> dict:
         kwargs = super().arguments()
@@ -333,7 +333,7 @@ class ButtonAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class ImageAPI(ComponentAPI):
 
-    classname: str | None = field(default="image")
+    classname: Union[str, None] = field(default="image")
     builder: type[Component] = field(default=html.Img)
 
     src: str = field(default=None)
@@ -348,7 +348,7 @@ class ImageAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class IframeAPI(ComponentAPI):
 
-    classname: str | None = field(default="iframe")
+    classname: Union[str, None] = field(default="iframe")
     builder: type[Component] = field(default=html.Iframe)
 
     src: str = field(default=None)
@@ -368,7 +368,7 @@ class ContainerAPI(ComponentAPI):
     elements: list[Component] = field(default_factory=list)
     builder: type[Component] = field(default=dbc.Container)
 
-    fluid: str | bool = field(default=None)
+    fluid: Union[str, bool] = field(default=None)
     invert: bool = field(default=None)
 
     def __post_init__(self):
@@ -403,7 +403,7 @@ class ContainerAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class RowContainerAPI(ContainerAPI):
 
-    classname: str | None = field(default="row")
+    classname: Union[str, None] = field(default="row")
 
     builder: type[Component] = field(default=dbc.Row)
 
@@ -419,12 +419,12 @@ class RowContainerAPI(ContainerAPI):
 @dataclass(kw_only=True)
 class ColContainerAPI(ContainerAPI):
 
-    classname: str | None = field(default="col")
+    classname: Union[str, None] = field(default="col")
 
     builder: type[Component] = field(default=dbc.Col)
 
     align: str = field(default=None)
-    width: int | dict = field(default=None)
+    width: Union[int, dict] = field(default=None)
 
     def arguments(self) -> dict:
         kwargs = super().arguments()
@@ -435,7 +435,7 @@ class ColContainerAPI(ContainerAPI):
 @dataclass(kw_only=True)
 class ButtonContainerAPI(ContainerAPI):
 
-    classname: str | None = field(default="buttons")
+    classname: Union[str, None] = field(default="buttons")
 
     builder: type[Component] = field(default=dbc.ButtonGroup)
 
@@ -450,7 +450,7 @@ class ButtonContainerAPI(ContainerAPI):
 @dataclass(kw_only=True)
 class DropdownAPI(ComponentAPI):
 
-    classname: str | None = field(default="dropdown")
+    classname: Union[str, None] = field(default="dropdown")
     builder: type[Component] = field(default=dbc.DropdownMenuItem)
 
     header: bool = field(default=None)
@@ -469,7 +469,7 @@ class DropdownAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class DropdownContainerAPI(ContainerAPI):
 
-    classname: str | None = field(default="dropdowns")
+    classname: Union[str, None] = field(default="dropdowns")
 
     direction: str = field(default="down")
     disabled: bool = field(default=None)
@@ -496,7 +496,7 @@ class DropdownContainerAPI(ContainerAPI):
 @dataclass(kw_only=True)
 class PaginatorAPI(ButtonContainerAPI):
 
-    classname: str | None = field(default="paginator")
+    classname: Union[str, None] = field(default="paginator")
 
     vertical: bool = field(default=None)
 
@@ -532,18 +532,18 @@ class PaginatorAPI(ButtonContainerAPI):
 @dataclass(kw_only=True)
 class NavigatorAPI(ComponentAPI):
 
-    classname: str | None = field(default="navigator")
+    classname: Union[str, None] = field(default="navigator")
     builder: type[Component] = field(default=dbc.NavItem)
 
 @dataclass(kw_only=True)
 class NavigatorContainerAPI(ContainerAPI):
 
-    classname: str | None = field(default="navigator")
+    classname: Union[str, None] = field(default="navigator")
 
     elements: list[NavigatorAPI] = field(default_factory=list)
     builder: type[Component] = field(default=dbc.Nav)
 
-    vertical: str | bool = field(default=None)
+    vertical: Union[str, bool] = field(default=None)
     horizontal: str = field(default=None)
     justified: bool = field(default=None)
     fill: bool = field(default=None)
@@ -563,7 +563,7 @@ class NavigatorContainerAPI(ContainerAPI):
 @dataclass(kw_only=True)
 class LoadingAPI(ComponentAPI):
 
-    classname: str | None = field(default="loading")
+    classname: Union[str, None] = field(default="loading")
     builder: type[Component] = field(default=html.Div)
 
     color: str = field(default="primary")
@@ -582,14 +582,14 @@ class LoadingAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class NotificationAPI(ComponentAPI):
 
-    classname: str | None = field(default="notification")
+    classname: Union[str, None] = field(default="notification")
     builder: type[Component] = field(default=dbc.Toast)
 
     icon: str = field(default=None)
     header: str = field(default=None)
-    duration: int | None = field(default=None)
+    duration: Union[int, None] = field(default=None)
     dismissable: bool = field(default=True)
-    persistence: bool | str = field(default=None)
+    persistence: Union[bool, str] = field(default=None)
 
     def __post_init__(self):
         if self.background is not None:
@@ -613,10 +613,10 @@ class NotificationAPI(ComponentAPI):
 @dataclass(kw_only=True)
 class ModalAPI(ComponentAPI):
 
-    classname: str | None = field(default="modal")
+    classname: Union[str, None] = field(default="modal")
     builder: type[Component] = field(default=dbc.Modal)
 
-    header: list[Component] | str = field(default=None)
+    header: Union[list[Component], str] = field(default=None)
     body: list[Component] = field(default_factory=list)
     footer: list[Component] = field(default_factory=list)
 
@@ -625,9 +625,9 @@ class ModalAPI(ComponentAPI):
     open: bool = field(default=False)
     centered: bool = field(default=None)
     keyboard: bool = field(default=None)
-    backdrop: bool | str = field(default=None)
+    backdrop: Union[bool, str] = field(default=None)
     scrollable: bool = field(default=None)
-    fullscreen: bool | str = field(default=None)
+    fullscreen: Union[bool, str] = field(default=None)
 
     def arguments(self) -> dict:
         kwargs = super().arguments()

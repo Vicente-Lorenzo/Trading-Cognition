@@ -19,70 +19,70 @@ from Library.Utility.File import *
 
 class AppAPI:
 
-    GLOBAL_LOCATION_ID: ComponentID | dict = ComponentID()
-    GLOBAL_LOCATION_STORAGE_ID: ComponentID | dict = ComponentID()
-    GLOBAL_DESCRIPTION_ID: ComponentID | dict = ComponentID()
-    GLOBAL_NAVIGATION_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CONTENT_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CONTENT_LOADING_ID: ComponentID | dict = ComponentID()
-    GLOBAL_SIDEBAR_ID: ComponentID | dict = ComponentID()
-    GLOBAL_SIDEBAR_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_SIDEBAR_LOADING_ID: ComponentID | dict = ComponentID()
-    GLOBAL_SIDEBAR_COLLAPSE_ID: ComponentID | dict = ComponentID()
+    GLOBAL_LOCATION_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_LOCATION_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_DESCRIPTION_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_NAVIGATION_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CONTENT_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CONTENT_LOADING_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_SIDEBAR_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_SIDEBAR_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_SIDEBAR_LOADING_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_SIDEBAR_COLLAPSE_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_BACKWARD_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_BACKWARD_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_REFRESH_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_REFRESH_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_FORWARD_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_FORWARD_ASYNC_ID: ComponentID | dict = ComponentID()
+    GLOBAL_BACKWARD_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_BACKWARD_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_REFRESH_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_REFRESH_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_FORWARD_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_FORWARD_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_CONTACTS_ARROW_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CONTACTS_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CONTACTS_COLLAPSE_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CONTACTS_ID: ComponentID | dict = ComponentID()
+    GLOBAL_CONTACTS_ARROW_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CONTACTS_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CONTACTS_COLLAPSE_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CONTACTS_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_IMPORT_ID: ComponentID | dict = ComponentID()
-    GLOBAL_IMPORT_UPLOAD_ID: ComponentID | dict = ComponentID()
-    GLOBAL_EXPORT_ID: ComponentID | dict = ComponentID()
-    GLOBAL_EXPORT_DOWNLOAD_ID: ComponentID | dict = ComponentID()
+    GLOBAL_IMPORT_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_IMPORT_UPLOAD_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_EXPORT_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_EXPORT_DOWNLOAD_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_TERMINAL_ID: ComponentID | dict = ComponentID()
-    GLOBAL_TERMINAL_ARROW_ID: ComponentID | dict = ComponentID()
-    GLOBAL_TERMINAL_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_TERMINAL_COLLAPSE_ID: ComponentID | dict = ComponentID()
-    GLOBAL_NOTIFICATION_ID: ComponentID | dict = ComponentID()
+    GLOBAL_TERMINAL_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_TERMINAL_ARROW_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_TERMINAL_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_TERMINAL_COLLAPSE_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_NOTIFICATION_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_ENTER_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_REENTER_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_ROUTE_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_LEAVE_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_ROUTING_STORAGE_ID: ComponentID | dict = ComponentID()
+    GLOBAL_ENTER_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_REENTER_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_ROUTE_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_LEAVE_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_ROUTING_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_MEMORY_STORAGE_ID: ComponentID | dict = ComponentID()
-    GLOBAL_SESSION_STORAGE_ID: ComponentID | dict = ComponentID()
-    GLOBAL_LOCAL_STORAGE_ID: ComponentID | dict = ComponentID()
+    GLOBAL_MEMORY_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_SESSION_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_LOCAL_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_CLEAN_MEMORY_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_MEMORY_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_SESSION_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_SESSION_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_LOCAL_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_LOCAL_ASYNC_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_RESET_BUTTON_ID: ComponentID | dict = ComponentID()
-    GLOBAL_CLEAN_RESET_ASYNC_ID: ComponentID | dict = ComponentID()
+    GLOBAL_CLEAN_MEMORY_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_MEMORY_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_SESSION_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_SESSION_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_LOCAL_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_LOCAL_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_RESET_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_CLEAN_RESET_ASYNC_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_MODAL_ID: ComponentID | dict = ComponentID()
-    GLOBAL_MODAL_HEADER_ID: ComponentID | dict = ComponentID()
-    GLOBAL_MODAL_BODY_ID: ComponentID | dict = ComponentID()
-    GLOBAL_MODAL_FOOTER_ID: ComponentID | dict = ComponentID()
-    GLOBAL_MODAL_BUTTON_ID: ComponentID | dict = ComponentID()
+    GLOBAL_MODAL_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_MODAL_HEADER_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_MODAL_BODY_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_MODAL_FOOTER_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_MODAL_BUTTON_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_EMAIL_STORAGE_ID: ComponentID | dict = ComponentID()
+    GLOBAL_EMAIL_STORAGE_ID: Union[ComponentID, dict] = ComponentID()
 
-    GLOBAL_HIGH_FREQUENCY_INTERVAL_ID: ComponentID | dict = ComponentID()
-    GLOBAL_MEDIUM_FREQUENCY_INTERVAL_ID: ComponentID | dict = ComponentID()
-    GLOBAL_LOW_FREQUENCY_INTERVAL_ID: ComponentID | dict = ComponentID()
+    GLOBAL_HIGH_FREQUENCY_INTERVAL_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_MEDIUM_FREQUENCY_INTERVAL_ID: Union[ComponentID, dict] = ComponentID()
+    GLOBAL_LOW_FREQUENCY_INTERVAL_ID: Union[ComponentID, dict] = ComponentID()
 
     GLOBAL_NOT_FOUND_LAYOUT: Component
     GLOBAL_LOADING_LAYOUT: Component
@@ -106,9 +106,9 @@ class AppAPI:
                  debug: bool = False,
                  terminal_limit: int = 100,
                  notification_limit: int = 10,
-                 notification_duration: int | None = 5000,
+                 notification_duration: Union[int, None] = 5000,
                  notification_dismissable: bool = True,
-                 notification_persistence: bool | str = None,
+                 notification_persistence: Union[bool, str] = None,
                  high_frequency_interval: int = 1000,
                  medium_frequency_interval: int = 60 * 1000,
                  low_frequency_interval: int = 60 * 60 * 1000) -> None:
@@ -178,11 +178,11 @@ class AppAPI:
         self._log_.debug(lambda: f"Defined Terminal Limit = {self._terminal_limit_}")
         self._notification_limit_: int = notification_limit
         self._log_.debug(lambda: f"Defined Notification Limit = {self._notification_limit_}")
-        self._notification_duration_: int | None = notification_duration
+        self._notification_duration_: Union[int, None] = notification_duration
         self._log_.debug(lambda: f"Defined Notification Duration = {self._notification_duration_}")
         self._notification_dismissable_: bool = notification_dismissable
         self._log_.debug(lambda: f"Defined Notification Dismissable = {self._notification_dismissable_}")
-        self._notification_persistence_: bool | str = notification_persistence
+        self._notification_persistence_: Union[bool, str] = notification_persistence
         self._log_.debug(lambda: f"Defined Notification Persistence = {self._notification_persistence_}")
 
         self._high_frequency_interval_: int = high_frequency_interval
@@ -705,7 +705,7 @@ class AppAPI:
             return cid
         raise RuntimeError(f"Duplicate Dash ID detected: {cid}")
 
-    def resolve(self, *, path: PurePath | str, relative: bool, footer: bool = None) -> str:
+    def resolve(self, *, path: Union[PurePath, str], relative: bool, footer: bool = None) -> str:
         path = inspect_file(path, header=False, builder=PurePosixPath)
         self._log_.debug(lambda: f"Resolve Path: Received = {path}")
         path = self._anchor_ / path if relative else path
@@ -713,12 +713,12 @@ class AppAPI:
         self._log_.debug(lambda: f"Resolve Path: Resolved = {resolve}")
         return resolve
 
-    def anchorize(self, *, path: PurePath | str, relative: bool = True) -> str:
+    def anchorize(self, *, path: Union[PurePath, str], relative: bool = True) -> str:
         anchor = self.resolve(path=path, relative=relative, footer=False)
         self._log_.debug(lambda: f"Anchorize Path: Resolved = {anchor}")
         return anchor
 
-    def endpointize(self, *, path: PurePath | str, relative: bool = True) -> str:
+    def endpointize(self, *, path: Union[PurePath, str], relative: bool = True) -> str:
         endpoint = self.resolve(path=path, relative=relative, footer=True)
         self._log_.debug(lambda: f"Endpointize Path: Resolved = {endpoint}")
         return endpoint

@@ -3,9 +3,9 @@ from __future__ import annotations
 import dash
 from enum import Enum
 from functools import wraps
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Any
 from typing_extensions import Self
+from abc import ABC, abstractmethod
+from typing import Union, TYPE_CHECKING, Callable, Any
 
 if TYPE_CHECKING: from Library.App import AppAPI, PageAPI
 from Library.App.Component import Component
@@ -18,12 +18,12 @@ class ComponentID:
         return f"<{self.__class__.__name__}: {getattr(self, 'name', 'Unbound')}>"
 
 class Trigger(ABC):
-    def __init__(self, component: str | dict | ComponentID, property: str):
-        self.component: str | dict | ComponentID = component
+    def __init__(self, component: Union[str, dict, ComponentID], property: str):
+        self.component: Union[str, dict, ComponentID] = component
         self.property: str = property
 
     @abstractmethod
-    def build(self, context: AppAPI | PageAPI) -> tuple[dict, str]:
+    def build(self, context: Union[AppAPI, PageAPI]) -> tuple[dict, str]:
         from Library.App.Page import PageAPI
         trigger: str = self.__class__.__name__
         component = self.component.name if isinstance(self.component, ComponentID) else self.component
@@ -43,26 +43,26 @@ class Trigger(ABC):
         return cid, self.property
 
 class Output(Trigger):
-    def __init__(self, component: str | dict, property: str, allow_duplicate: bool = True):
+    def __init__(self, component: Union[str, dict], property: str, allow_duplicate: bool = True):
         super().__init__(component=component, property=property)
         self.allow_duplicate: bool = allow_duplicate
-    def build(self, context: AppAPI | PageAPI) -> dash.Output:
+    def build(self, context: Union[AppAPI, PageAPI]) -> dash.Output:
         component, property = super().build(context=context)
         return dash.Output(component_id=component, component_property=property, allow_duplicate=self.allow_duplicate)
 
 class Input(Trigger):
-    def __init__(self, component: str | dict, property: str, allow_optional: bool = True):
+    def __init__(self, component: Union[str, dict], property: str, allow_optional: bool = True):
         super().__init__(component=component, property=property)
         self.allow_optional: bool = allow_optional
-    def build(self, context: AppAPI | PageAPI) -> dash.Input:
+    def build(self, context: Union[AppAPI, PageAPI]) -> dash.Input:
         component, property = super().build(context=context)
         return dash.Input(component_id=component, component_property=property, allow_optional=self.allow_optional)
 
 class State(Trigger):
-    def __init__(self, component: str | dict, property: str, allow_optional: bool = True):
+    def __init__(self, component: Union[str, dict], property: str, allow_optional: bool = True):
         super().__init__(component=component, property=property)
         self.allow_optional: bool = allow_optional
-    def build(self, context: AppAPI | PageAPI) -> dash.State:
+    def build(self, context: Union[AppAPI, PageAPI]) -> dash.State:
         component, property = super().build(context=context)
         return dash.State(component_id=component, component_property=property, allow_optional=self.allow_optional)
 
@@ -97,7 +97,7 @@ class InjectionType(Enum):
             return default
         return cls.Disabled
 
-def inject_callback_args(mode: InjectionType, injected_args: list | tuple, original_args: list | tuple):
+def inject_callback_args(mode: InjectionType, injected_args: Union[list, tuple], original_args: Union[list, tuple]):
     i_out, i_in, i_st, i_oth = sort(injected_args)
     o_out, o_in, o_st, o_oth = sort(original_args)
     n_i_in, n_o_in = len(i_in), len(o_in)
@@ -133,10 +133,10 @@ def inject_callback_args(mode: InjectionType, injected_args: list | tuple, origi
 
 def inject_serverside_callback(
         mode: InjectionType,
-        injected_func: Callable | None,
-        injected_args: tuple | list,
+        injected_func: Union[Callable, None],
+        injected_args: Union[tuple, list],
         original_func: Callable,
-        original_args: tuple | list):
+        original_args: Union[tuple, list]):
     all_args, schema = inject_callback_args(mode, injected_args, original_args)
     @wraps(original_func)
     def wrapped(*args, **kwargs):
@@ -175,10 +175,10 @@ def inject_serverside_callback(
 
 def inject_clientside_callback(
         mode: InjectionType,
-        injected_func: str | None,
-        injected_args: tuple | list,
+        injected_func: Union[str, None],
+        injected_args: Union[tuple, list],
         original_js: str,
-        original_args: tuple | list):
+        original_args: Union[tuple, list]):
     all_args, schema = inject_callback_args(mode, injected_args, original_args)
     handler_src = "null" if (injected_func is None or mode == InjectionType.Disabled) else f"({injected_func})"
     no_update = "window.dash_clientside.no_update"
@@ -218,22 +218,22 @@ def inject_clientside_callback(
 def callback(
         *args,
         js: bool,
-        on_init: bool | InjectionType,
-        on_click: bool | InjectionType,
-        on_enter: bool | InjectionType,
-        on_reenter: bool | InjectionType,
-        on_route: bool | InjectionType,
-        on_leave: bool | InjectionType,
-        on_clean_memory: bool | InjectionType,
-        on_clean_session: bool | InjectionType,
-        on_clean_local: bool | InjectionType,
-        on_clean_reset: bool | InjectionType,
-        loading: bool | InjectionType,
-        loading_content: bool | InjectionType,
-        loading_sidebar: bool | InjectionType,
-        email: bool | InjectionType,
+        on_init: Union[bool, InjectionType],
+        on_click: Union[bool, InjectionType],
+        on_enter: Union[bool, InjectionType],
+        on_reenter: Union[bool, InjectionType],
+        on_route: Union[bool, InjectionType],
+        on_leave: Union[bool, InjectionType],
+        on_clean_memory: Union[bool, InjectionType],
+        on_clean_session: Union[bool, InjectionType],
+        on_clean_local: Union[bool, InjectionType],
+        on_clean_reset: Union[bool, InjectionType],
+        loading: Union[bool, InjectionType],
+        loading_content: Union[bool, InjectionType],
+        loading_sidebar: Union[bool, InjectionType],
+        email: Union[bool, InjectionType],
         running: list[tuple],
-        progress: Component | list[Component],
+        progress: Union[Component, list[Component]],
         cancel: list[Component],
         interval: int,
         progress_default: Any,
@@ -274,22 +274,22 @@ def callback(
 
 def clientside_callback(
         *args,
-        on_init: bool | InjectionType = InjectionType.Disabled,
-        on_click: bool | InjectionType = InjectionType.Disabled,
-        on_enter: bool | InjectionType = InjectionType.Disabled,
-        on_reenter: bool | InjectionType = InjectionType.Disabled,
-        on_route: bool | InjectionType = InjectionType.Disabled,
-        on_leave: bool | InjectionType = InjectionType.Disabled,
-        on_clean_memory: bool | InjectionType = InjectionType.Disabled,
-        on_clean_session: bool | InjectionType = InjectionType.Disabled,
-        on_clean_local: bool | InjectionType = InjectionType.Disabled,
-        on_clean_reset: bool | InjectionType = InjectionType.Disabled,
-        loading: bool | InjectionType = InjectionType.Disabled,
-        loading_content: bool | InjectionType = InjectionType.Disabled,
-        loading_sidebar: bool | InjectionType = InjectionType.Disabled,
-        email: bool | InjectionType = InjectionType.Disabled,
+        on_init: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_click: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_enter: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_reenter: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_route: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_leave: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_memory: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_session: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_local: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_reset: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading_content: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading_sidebar: Union[bool, InjectionType] = InjectionType.Disabled,
+        email: Union[bool, InjectionType] = InjectionType.Disabled,
         running: list[tuple] = None,
-        progress: list[Component] | Component = None,
+        progress: Union[list[Component], Component] = None,
         cancel: list[Component] = None,
         interval: int = None,
         progress_default: Any = None,
@@ -321,25 +321,25 @@ def clientside_callback(
 
 def serverside_callback(
         *args,
-        on_init: bool | InjectionType = InjectionType.Disabled,
-        on_click: bool | InjectionType = InjectionType.Disabled,
-        on_enter: bool | InjectionType = InjectionType.Disabled,
-        on_reenter: bool | InjectionType = InjectionType.Disabled,
-        on_route: bool | InjectionType = InjectionType.Disabled,
-        on_leave: bool | InjectionType = InjectionType.Disabled,
-        on_clean_memory: bool | InjectionType = InjectionType.Disabled,
-        on_clean_session: bool | InjectionType = InjectionType.Disabled,
-        on_clean_local: bool | InjectionType = InjectionType.Disabled,
-        on_clean_reset: bool | InjectionType = InjectionType.Disabled,
-        loading: bool | InjectionType = InjectionType.Disabled,
-        loading_content: bool | InjectionType = InjectionType.Disabled,
-        loading_sidebar: bool | InjectionType = InjectionType.Disabled,
-        email: bool | InjectionType = InjectionType.Disabled,
+        on_init: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_click: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_enter: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_reenter: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_route: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_leave: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_memory: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_session: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_local: Union[bool, InjectionType] = InjectionType.Disabled,
+        on_clean_reset: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading_content: Union[bool, InjectionType] = InjectionType.Disabled,
+        loading_sidebar: Union[bool, InjectionType] = InjectionType.Disabled,
+        email: Union[bool, InjectionType] = InjectionType.Disabled,
         background: bool = False,
         memoize: bool = False,
         manager: str = None,
         running: list[tuple] = None,
-        progress: list[Component] | Component = None,
+        progress: Union[list[Component], Component] = None,
         cancel: list[Component] = None,
         interval: int = None,
         progress_default: Any = None,

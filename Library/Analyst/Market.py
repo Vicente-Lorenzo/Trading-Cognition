@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Database.Dataframe import pl
 from Library.Analyst import SeriesAPI
 
@@ -5,16 +6,16 @@ class MarketAPI:
 
     def __init__(self):
         self._offset: int = 1
-        self._series: list[SeriesAPI] | None = None
-        self._data: pl.DataFrame | None = None
+        self._series: Union[list[SeriesAPI], None] = None
+        self._data: Union[pl.DataFrame, None] = None
 
     def data(self) -> pl.DataFrame:
         return self._data if self._data is not None else pl.DataFrame()
     
-    def head(self, n: int | None = None) -> pl.DataFrame:
+    def head(self, n: Union[int, None] = None) -> pl.DataFrame:
         return self._data.head(n)
 
-    def tail(self, n: int | None = None) -> pl.DataFrame:
+    def tail(self, n: Union[int, None] = None) -> pl.DataFrame:
         return self._data.tail(n)
 
     def last(self, shift: int = 0) -> pl.DataFrame:

@@ -1,4 +1,5 @@
 import blpapi
+from typing import Union
 from datetime import date, datetime
 
 from Library.Database.Dataframe import pd, pl
@@ -12,13 +13,13 @@ class HistoricalAPI(ServiceAPI):
     _REQUEST_TYPE_ = "HistoricalDataRequest"
 
     def fetch(self,
-              securities: str | list[str],
-              fields: str | list[str],
-              start: str | date | datetime,
-              stop: str | date | datetime = None,
+              securities: Union[str, list[str]],
+              fields: Union[str, list[str]],
+              start: Union[str, date, datetime],
+              stop: Union[str, date, datetime] = None,
               timeframe: str = "DAILY",
               timeout: int = 0,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches historical data for multiple securities and fields.
         :param securities: Security ticker or list of tickers.

@@ -1,5 +1,5 @@
 import os
-from typing import Type
+from typing import Union, Type
 from pathlib import Path
 from argparse import ArgumentParser
 
@@ -88,7 +88,7 @@ log = HandlerAPI(Class=execution, Subclass="Execution Management")
 @log.guard
 def main():
 
-    strategy: Type[StrategyAPI] | None = None
+    strategy: Union[Type[StrategyAPI], None] = None
     match args.strategy:
         case StrategyType.Download.name:
             strategy = DownloadStrategyAPI
@@ -99,7 +99,7 @@ def main():
 
     parameters: Parameters = parameterise[args.broker][args.group][args.symbol][args.timeframe]
 
-    system: SystemAPI | None = None
+    system: Union[SystemAPI, None] = None
     match args.system:
         case SystemType.Backtesting.name:
             params: Parameters = parameters.Backtesting[args.strategy]

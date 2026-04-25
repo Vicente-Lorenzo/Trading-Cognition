@@ -1,3 +1,4 @@
+from typing import Union
 from pathlib import Path
 
 from Library.Utility.Typing import format
@@ -55,7 +56,7 @@ def htmlize(node) -> str:
 
 class HtmlAPI(FileAPI):
 
-    def __init__(self, data: str | Path | PathAPI, **kwargs):
+    def __init__(self, data: Union[str, Path, PathAPI], **kwargs):
         from dash import html
         super().__init__(data)
         self._html_ = htmlize([html.Br() if not line else html.Div(children=line, **kwargs) for line in self._data_.split("\n")])

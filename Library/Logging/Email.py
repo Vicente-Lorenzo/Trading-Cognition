@@ -1,3 +1,4 @@
+from typing import Union
 # import mailer
 # from mailer.report import Report
 from dash import html
@@ -11,8 +12,8 @@ class EmailLoggingAPI(WebLoggingAPI, ReportLoggingAPI):
 
     _email_title_: str = None
     _email_from_address_: str = None
-    _email_to_addresses_: list[str] | str = None
-    _email_cc_addresses_: list[str] | str = None
+    _email_to_addresses_: Union[list[str], str] = None
+    _email_cc_addresses_: Union[list[str], str] = None
     _email_default_address_ = "lisbon.eqd.exo.monitoring@bnpparibas.com"
     _email_download_hyperlink_: str = None
 
@@ -37,13 +38,13 @@ class EmailLoggingAPI(WebLoggingAPI, ReportLoggingAPI):
             cls._email_from_address_ = from_address
 
     @classmethod
-    def set_email_to_addresses(cls, to_addresses: list[str] | str) -> None:
+    def set_email_to_addresses(cls, to_addresses: Union[list[str], str]) -> None:
         with cls._class_lock_:
             if cls.is_entered(): return
             cls._email_to_addresses_ = to_addresses
 
     @classmethod
-    def set_email_cc_addresses(cls, cc_addresses: list[str] | str) -> None:
+    def set_email_cc_addresses(cls, cc_addresses: Union[list[str], str]) -> None:
         with cls._class_lock_:
             if cls.is_entered(): return
             cls._email_cc_addresses_ = cc_addresses

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
-from collections.abc import Sequence
 from datetime import datetime
 from dataclasses import dataclass
+from collections.abc import Sequence
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Datapoint import DatapointAPI
@@ -21,28 +21,28 @@ class MarketAPI(DatapointAPI):
     Table: ClassVar[str] = "Market"
 
     @staticmethod
-    def save_ticks(data: TickAPI | Sequence[TickAPI], by: str = "Autosave") -> None:
+    def save_ticks(data: Union[TickAPI, Sequence[TickAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for tick in data: tick.save(by=by)
         else:
             data.save(by=by)
 
     @staticmethod
-    def save_bars(data: BarAPI | Sequence[BarAPI], by: str = "Autosave") -> None:
+    def save_bars(data: Union[BarAPI, Sequence[BarAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for bar in data: bar.save(by=by)
         else:
             data.save(by=by)
 
     @staticmethod
-    def load_ticks(data: TickAPI | Sequence[TickAPI]) -> None:
+    def load_ticks(data: Union[TickAPI, Sequence[TickAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for tick in data: tick.load()
         else:
             data.load()
 
     @staticmethod
-    def load_bars(data: BarAPI | Sequence[BarAPI]) -> None:
+    def load_bars(data: Union[BarAPI, Sequence[BarAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for bar in data: bar.load()
         else:
@@ -113,9 +113,9 @@ class MarketAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_ticks(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_ticks(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         db.upsert(schema=TickAPI.Schema, table=TickAPI.Table, data=data, key=["Timestamp", "Security"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def push_bars(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_bars(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         db.upsert(schema=BarAPI.Schema, table=BarAPI.Table, data=data, key=["Timestamp", "Security", "Timeframe"], exclude=["CreatedAt", "CreatedBy"])

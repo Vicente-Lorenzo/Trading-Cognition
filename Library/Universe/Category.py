@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Database import PrimaryKey
 from Library.Database.Datapoint import DatapointAPI
-from Library.Universe.Universe import UniverseAPI
 
 if TYPE_CHECKING: from Library.Database.Database import DatabaseAPI
 
@@ -17,10 +16,10 @@ class CategoryAPI(DatapointAPI):
     Schema: ClassVar[str] = "Universe"
     Table: ClassVar[str] = "Category"
 
-    UID: str | None = None
-    Primary: str | None = None
-    Secondary: str | None = None
-    Alternative: str | None = None
+    UID: Union[str, None] = None
+    Primary: Union[str, None] = None
+    Secondary: Union[str, None] = None
+    Alternative: Union[str, None] = None
 
     @property
     def Structure(self) -> dict:
@@ -33,7 +32,7 @@ class CategoryAPI(DatapointAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
@@ -42,7 +41,7 @@ class CategoryAPI(DatapointAPI):
             self.UID = f"{self.Primary} ({self.Secondary})"
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         if self._db_ is None: return None
         if not self.UID and not self.Primary: return None
         condition, parameters = None, None

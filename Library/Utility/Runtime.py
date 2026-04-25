@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Union
 from functools import lru_cache
 
 def find_user():
@@ -61,7 +62,7 @@ def find_notebook():
     ipython = find_ipython()
     return ipython.user_ns["__session__"]
 
-def find_env_var(key: str, *, case_sensitive: bool = True) -> str | None:
+def find_env_var(key: str, *, case_sensitive: bool = True) -> Union[str, None]:
     if key in os.environ:
         return os.environ[key]
     if case_sensitive:
@@ -91,7 +92,7 @@ def match_env_vars(*, keyword: str, case_sensitive: bool = True) -> dict[str, st
             matches[env_key] = env_value
     return matches
 
-def find_host_port(*, host: str = "localhost", port_min: int = 1024, port_max: int = 65535) -> int | tuple[str, int]:
+def find_host_port(*, host: str = "localhost", port_min: int = 1024, port_max: int = 65535) -> Union[int, tuple[str, int]]:
     import socket
     if not (0 <= port_min <= 65535):
         raise ValueError(f"Invalid min port range: [0, 65535]")

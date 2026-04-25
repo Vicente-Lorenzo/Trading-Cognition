@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 from Library.Model.Noise import NoiseAPI
 
@@ -20,20 +21,20 @@ class BrownianNoiseAPI(NoiseAPI):
     """
 
     def __init__(self,
-                 mu: np.ndarray | float,
+                 mu: Union[np.ndarray, float],
                  sigma: float = 0.15,
                  dt: float = 1e-2,
-                 x0: np.ndarray | float | None = None,
-                 seed: int | None = None):
+                 x0: Union[np.ndarray, float, None] = None,
+                 seed: Union[int, None] = None):
         super().__init__(seed)
-        self._mu: np.ndarray | float = mu
+        self._mu: Union[np.ndarray, float] = mu
         self._sigma: float = sigma
         self._dt: float = dt
-        self._x0: np.ndarray | float | None = x0
-        self._x_prev: np.ndarray | float | None = None
+        self._x0: Union[np.ndarray, float, None] = x0
+        self._x_prev: Union[np.ndarray, float, None] = None
         self.reset()
 
-    def __call__(self) -> np.ndarray | float:
+    def __call__(self) -> Union[np.ndarray, float]:
         if np.isscalar(self._mu):
             noise = self._mu * self._dt + self._sigma * np.sqrt(self._dt) * self._rng.normal()
         else:

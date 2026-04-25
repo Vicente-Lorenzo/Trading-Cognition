@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -26,15 +26,15 @@ class TradeAPI(PositionAPI):
     Schema: ClassVar[str] = "Portfolio"
     Table: ClassVar[str] = "Trade"
 
-    UID: int | None = None
+    UID: Union[int, None] = None
 
-    Position: InitVar[int | PositionAPI | None] = field(default=MISSING)
-    ExitTimestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
-    ExitBalance: InitVar[float | None] = field(default=MISSING)
+    Position: InitVar[Union[int, PositionAPI, None]] = field(default=MISSING)
+    ExitTimestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
+    ExitBalance: InitVar[Union[float, None]] = field(default=MISSING)
 
-    _position_: PositionAPI | None = field(default=None, init=False, repr=False)
-    _exit_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _exit_balance_: float | None = field(default=None, init=False, repr=False)
+    _position_: Union[PositionAPI, None] = field(default=None, init=False, repr=False)
+    _exit_timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _exit_balance_: Union[float, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -68,34 +68,34 @@ class TradeAPI(PositionAPI):
         return cols
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      type: PositionType | str | None,
-                      direction: Direction | str | None,
-                      security: int | SecurityAPI | None,
-                      entry_timestamp: datetime | TimestampAPI | None,
-                      entry_price: float | PriceAPI | None,
-                      stop_loss_price: float | PriceAPI | None,
-                      take_profit_price: float | PriceAPI | None,
-                      max_run_up_price: float | PriceAPI | None,
-                      max_draw_down_price: float | PriceAPI | None,
-                      exit_price: float | PriceAPI | None,
-                      stop_loss_pnl: float | PnLAPI | None,
-                      take_profit_pnl: float | PnLAPI | None,
-                      max_run_up_pnl: float | PnLAPI | None,
-                      max_draw_down_pnl: float | PnLAPI | None,
-                      gross_pnl: float | PnLAPI | None,
-                      commission_pnl: float | PnLAPI | None,
-                      swap_pnl: float | PnLAPI | None,
-                      net_pnl: float | PnLAPI | None,
-                      entry_balance: float | None,
-                      order: int | OrderAPI | None,
-                      position: int | PositionAPI | None,
-                      exit_timestamp: datetime | TimestampAPI | None,
-                      exit_balance: float | None) -> None:
+                      type: Union[PositionType, str, None],
+                      direction: Union[Direction, str, None],
+                      security: Union[int, SecurityAPI, None],
+                      entry_timestamp: Union[datetime, TimestampAPI, None],
+                      entry_price: Union[float, PriceAPI, None],
+                      stop_loss_price: Union[float, PriceAPI, None],
+                      take_profit_price: Union[float, PriceAPI, None],
+                      max_run_up_price: Union[float, PriceAPI, None],
+                      max_draw_down_price: Union[float, PriceAPI, None],
+                      exit_price: Union[float, PriceAPI, None],
+                      stop_loss_pnl: Union[float, PnLAPI, None],
+                      take_profit_pnl: Union[float, PnLAPI, None],
+                      max_run_up_pnl: Union[float, PnLAPI, None],
+                      max_draw_down_pnl: Union[float, PnLAPI, None],
+                      gross_pnl: Union[float, PnLAPI, None],
+                      commission_pnl: Union[float, PnLAPI, None],
+                      swap_pnl: Union[float, PnLAPI, None],
+                      net_pnl: Union[float, PnLAPI, None],
+                      entry_balance: Union[float, None],
+                      order: Union[int, OrderAPI, None],
+                      position: Union[int, PositionAPI, None],
+                      exit_timestamp: Union[datetime, TimestampAPI, None],
+                      exit_balance: Union[float, None]) -> None:
         position = MISSING if isinstance(position, property) else position
         exit_timestamp = MISSING if isinstance(exit_timestamp, property) else exit_timestamp
         exit_balance = MISSING if isinstance(exit_balance, property) else exit_balance
@@ -134,19 +134,19 @@ class TradeAPI(PositionAPI):
 
     @property
     @overridefield
-    def Position(self) -> PositionAPI | None:
+    def Position(self) -> Union[PositionAPI, None]:
         return self._position_
     @Position.setter
-    def Position(self, val: int | PositionAPI | None) -> None:
+    def Position(self, val: Union[int, PositionAPI, None]) -> None:
         if isinstance(val, PositionAPI): self._position_ = val
         elif val is not None: self._position_ = PositionAPI(UID=val, db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def ExitTimestamp(self) -> TimestampAPI | None:
+    def ExitTimestamp(self) -> Union[TimestampAPI, None]:
         return self._exit_timestamp_
     @ExitTimestamp.setter
-    def ExitTimestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def ExitTimestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         if isinstance(val, TimestampAPI): self._exit_timestamp_ = val
         elif val is not None:
             if self._exit_timestamp_: self._exit_timestamp_.DateTime = val
@@ -154,29 +154,29 @@ class TradeAPI(PositionAPI):
 
     @property
     @overridefield
-    def ExitBalance(self) -> float | None:
+    def ExitBalance(self) -> Union[float, None]:
         return self._exit_balance_
     @ExitBalance.setter
-    def ExitBalance(self, val: float | None) -> None:
+    def ExitBalance(self, val: Union[float, None]) -> None:
         self._exit_balance_ = val
 
     @property
-    def ExitReturn(self) -> PnLAPI | None:
+    def ExitReturn(self) -> Union[PnLAPI, None]:
         if self._exit_balance_ is None or self._entry_balance_ is None: return None
         return PnLAPI(PnL=self._exit_balance_ - self._entry_balance_, Reference=self._entry_balance_)
 
     @property
-    def Duration(self) -> float | None:
+    def Duration(self) -> Union[float, None]:
         if self._entry_timestamp_ is None or self._exit_timestamp_ is None: return None
         return (self._exit_timestamp_.DateTime - self._entry_timestamp_.DateTime).total_seconds()
 
     @property
-    def DurationDays(self) -> float | None:
+    def DurationDays(self) -> Union[float, None]:
         seconds = self.Duration
         return seconds / 86400.0 if seconds is not None else None
 
     @property
-    def HoldingPeriod(self) -> float | None:
+    def HoldingPeriod(self) -> Union[float, None]:
         return self.Duration
 
     @property

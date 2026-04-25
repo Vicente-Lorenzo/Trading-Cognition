@@ -1,5 +1,5 @@
 import threading
-from typing import Callable
+from typing import Union, Callable
 
 from Library.Utility.Service import ServiceAPI
 from Library.Market.Tick import TickAPI
@@ -12,11 +12,11 @@ class StreamingAPI(ServiceAPI):
     _DEPTH_EVENT_ = "ProtoOADepthEvent"
 
     def ticks(self,
-              symbols: int | list[int],
+              symbols: Union[int, list[int]],
               callback: Callable,
               frame: bool = False,
-              limit: int | None = None,
-              timeout: int | None = None) -> None:
+              limit: Union[int, None] = None,
+              timeout: Union[int, None] = None) -> None:
         from ctrader_open_api import Protobuf
         ids = [int(i) for i in self._api_.flatten(symbols)]
         try:
@@ -71,11 +71,11 @@ class StreamingAPI(ServiceAPI):
 
     def bars(self,
              symbol: int,
-             timeframe: str | int,
+             timeframe: Union[str, int],
              callback: Callable,
              frame: bool = False,
-             limit: int | None = None,
-             timeout: int | None = None) -> None:
+             limit: Union[int, None] = None,
+             timeout: Union[int, None] = None) -> None:
         from ctrader_open_api import Protobuf
         sid = int(symbol)
         tf_id = MarketAPI._timeframe_id_(timeframe)
@@ -136,11 +136,11 @@ class StreamingAPI(ServiceAPI):
             raise
 
     def depth(self,
-              symbols: int | list[int],
+              symbols: Union[int, list[int]],
               callback: Callable,
               frame: bool = False,
-              limit: int | None = None,
-              timeout: int | None = None) -> None:
+              limit: Union[int, None] = None,
+              timeout: Union[int, None] = None) -> None:
         from ctrader_open_api import Protobuf
         ids = [int(i) for i in self._api_.flatten(symbols)]
         try:

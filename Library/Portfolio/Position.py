@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from datetime import datetime
-from typing import ClassVar, TYPE_CHECKING
+from typing import Union, ClassVar, TYPE_CHECKING
 from dataclasses import dataclass, field, InitVar
 
 from Library.Database.Dataframe import pl
@@ -32,60 +32,60 @@ class PositionAPI(DatapointAPI):
     Schema: ClassVar[str] = "Portfolio"
     Table: ClassVar[str] = "Position"
 
-    UID: int | None = None
-    Type: InitVar[PositionType | str | None] = field(default=MISSING)
-    Direction: InitVar[Direction | str | None] = field(default=MISSING)
-    Volume: float | None = None
-    Quantity: float | None = None
-    UsedMargin: float | None = None
-    MidBalance: float | None = None
-    Label: str | None = None
-    Comment: str | None = None
+    UID: Union[int, None] = None
+    Type: InitVar[Union[PositionType, str, None]] = field(default=MISSING)
+    Direction: InitVar[Union[Direction, str, None]] = field(default=MISSING)
+    Volume: Union[float, None] = None
+    Quantity: Union[float, None] = None
+    UsedMargin: Union[float, None] = None
+    MidBalance: Union[float, None] = None
+    Label: Union[str, None] = None
+    Comment: Union[str, None] = None
 
-    Security: InitVar[int | SecurityAPI | None] = field(default=MISSING)
+    Security: InitVar[Union[int, SecurityAPI, None]] = field(default=MISSING)
 
-    EntryTimestamp: InitVar[datetime | TimestampAPI | None] = field(default=MISSING)
-    EntryPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    StopLossPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    TakeProfitPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    MaxRunUpPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    MaxDrawDownPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
-    ExitPrice: InitVar[float | PriceAPI | None] = field(default=MISSING)
+    EntryTimestamp: InitVar[Union[datetime, TimestampAPI, None]] = field(default=MISSING)
+    EntryPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    StopLossPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    TakeProfitPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    MaxRunUpPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    MaxDrawDownPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
+    ExitPrice: InitVar[Union[float, PriceAPI, None]] = field(default=MISSING)
 
-    StopLossPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    TakeProfitPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    MaxRunUpPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    MaxDrawDownPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    GrossPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    CommissionPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    SwapPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
-    NetPnL: InitVar[float | PnLAPI | None] = field(default=MISSING)
+    StopLossPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    TakeProfitPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    MaxRunUpPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    MaxDrawDownPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    GrossPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    CommissionPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    SwapPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
+    NetPnL: InitVar[Union[float, PnLAPI, None]] = field(default=MISSING)
 
-    EntryBalance: InitVar[float | None] = field(default=MISSING)
+    EntryBalance: InitVar[Union[float, None]] = field(default=MISSING)
 
-    Order: InitVar[int | OrderAPI | None] = field(default=MISSING)
+    Order: InitVar[Union[int, OrderAPI, None]] = field(default=MISSING)
 
-    _type_: PositionType | None = field(default=None, init=False, repr=False)
-    _direction_: Direction | None = field(default=None, init=False, repr=False)
+    _type_: Union[PositionType, None] = field(default=None, init=False, repr=False)
+    _direction_: Union[Direction, None] = field(default=None, init=False, repr=False)
 
-    _security_: SecurityAPI | None = field(default=None, init=False, repr=False)
-    _entry_timestamp_: TimestampAPI | None = field(default=None, init=False, repr=False)
-    _entry_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _stop_loss_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _take_profit_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _max_run_up_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _max_draw_down_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _exit_price_: PriceAPI | None = field(default=None, init=False, repr=False)
-    _stop_loss_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _take_profit_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _max_run_up_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _max_draw_down_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _gross_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _commission_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _swap_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _net_pnl_: PnLAPI | None = field(default=None, init=False, repr=False)
-    _entry_balance_: float | None = field(default=None, init=False, repr=False)
-    _order_: OrderAPI | None = field(default=None, init=False, repr=False)
+    _security_: Union[SecurityAPI, None] = field(default=None, init=False, repr=False)
+    _entry_timestamp_: Union[TimestampAPI, None] = field(default=None, init=False, repr=False)
+    _entry_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _stop_loss_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _take_profit_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _max_run_up_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _max_draw_down_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _exit_price_: Union[PriceAPI, None] = field(default=None, init=False, repr=False)
+    _stop_loss_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _take_profit_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _max_run_up_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _max_draw_down_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _gross_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _commission_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _swap_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _net_pnl_: Union[PnLAPI, None] = field(default=None, init=False, repr=False)
+    _entry_balance_: Union[float, None] = field(default=None, init=False, repr=False)
+    _order_: Union[OrderAPI, None] = field(default=None, init=False, repr=False)
 
     @property
     def Structure(self) -> dict:
@@ -127,31 +127,31 @@ class PositionAPI(DatapointAPI):
         return cols
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
                       autooverload: bool,
-                      type: PositionType | str | None,
-                      direction: Direction | str | None,
-                      security: int | SecurityAPI | None,
-                      entry_timestamp: datetime | TimestampAPI | None,
-                      entry_price: float | PriceAPI | None,
-                      stop_loss_price: float | PriceAPI | None,
-                      take_profit_price: float | PriceAPI | None,
-                      max_run_up_price: float | PriceAPI | None,
-                      max_draw_down_price: float | PriceAPI | None,
-                      exit_price: float | PriceAPI | None,
-                      stop_loss_pnl: float | PnLAPI | None,
-                      take_profit_pnl: float | PnLAPI | None,
-                      max_run_up_pnl: float | PnLAPI | None,
-                      max_draw_down_pnl: float | PnLAPI | None,
-                      gross_pnl: float | PnLAPI | None,
-                      commission_pnl: float | PnLAPI | None,
-                      swap_pnl: float | PnLAPI | None,
-                      net_pnl: float | PnLAPI | None,
-                      entry_balance: float | None,
-                      order: int | OrderAPI | None) -> None:
+                      type: Union[PositionType, str, None],
+                      direction: Union[Direction, str, None],
+                      security: Union[int, SecurityAPI, None],
+                      entry_timestamp: Union[datetime, TimestampAPI, None],
+                      entry_price: Union[float, PriceAPI, None],
+                      stop_loss_price: Union[float, PriceAPI, None],
+                      take_profit_price: Union[float, PriceAPI, None],
+                      max_run_up_price: Union[float, PriceAPI, None],
+                      max_draw_down_price: Union[float, PriceAPI, None],
+                      exit_price: Union[float, PriceAPI, None],
+                      stop_loss_pnl: Union[float, PnLAPI, None],
+                      take_profit_pnl: Union[float, PnLAPI, None],
+                      max_run_up_pnl: Union[float, PnLAPI, None],
+                      max_draw_down_pnl: Union[float, PnLAPI, None],
+                      gross_pnl: Union[float, PnLAPI, None],
+                      commission_pnl: Union[float, PnLAPI, None],
+                      swap_pnl: Union[float, PnLAPI, None],
+                      net_pnl: Union[float, PnLAPI, None],
+                      entry_balance: Union[float, None],
+                      order: Union[int, OrderAPI, None]) -> None:
         from Library.Universe.Security import SecurityAPI
         from Library.Portfolio.Order import OrderAPI
         type = MISSING if isinstance(type, property) else type
@@ -207,7 +207,7 @@ class PositionAPI(DatapointAPI):
         self._net_pnl_ = self._make_pnl_(net_pnl, reference=eb)
         super().__post_init__(db=db, migrate=migrate, autosave=autosave, autoload=autoload, autooverload=autooverload)
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         row = super()._pull_(overload=overload)
         if row:
             self._type_ = as_enum(PositionType, row.get(self.ID.Type))
@@ -215,16 +215,16 @@ class PositionAPI(DatapointAPI):
         return row
 
     @staticmethod
-    def _unwrap_price_(val: float | PriceAPI | None) -> float | None:
+    def _unwrap_price_(val: Union[float, PriceAPI, None]) -> Union[float, None]:
         if isinstance(val, PriceAPI): return val.Price
         return val if val is not MISSING else None
 
     @staticmethod
-    def _unwrap_pnl_(val: float | PnLAPI | None) -> float | None:
+    def _unwrap_pnl_(val: Union[float, PnLAPI, None]) -> Union[float, None]:
         if isinstance(val, PnLAPI): return val.PnL
         return val if val is not MISSING else None
 
-    def _make_price_(self, val: float | PriceAPI | None, reference: float | None) -> PriceAPI | None:
+    def _make_price_(self, val: Union[float, PriceAPI, None], reference: Union[float, None]) -> Union[PriceAPI, None]:
         if isinstance(val, PriceAPI):
             if val.Contract is None: val.Contract = self._security_.Contract if self._security_ else None
             if val.Reference is None: val.Reference = reference
@@ -233,7 +233,7 @@ class PositionAPI(DatapointAPI):
         return PriceAPI(Price=val, Reference=reference, Contract=self._security_.Contract if self._security_ else None)
 
     @staticmethod
-    def _make_pnl_(val: float | PnLAPI | None, reference: float | None) -> PnLAPI | None:
+    def _make_pnl_(val: Union[float, PnLAPI, None], reference: Union[float, None]) -> Union[PnLAPI, None]:
         if isinstance(val, PnLAPI):
             if val.Reference is None: val.Reference = reference
             return val
@@ -242,36 +242,36 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def Type(self) -> PositionType | None:
+    def Type(self) -> Union[PositionType, None]:
         return self._type_
     @Type.setter
-    def Type(self, val: PositionType | str | None) -> None:
+    def Type(self, val: Union[PositionType, str, None]) -> None:
         self._type_ = as_enum(PositionType, val)
 
     @property
     @overridefield
-    def Direction(self) -> Direction | None:
+    def Direction(self) -> Union[Direction, None]:
         return self._direction_
     @Direction.setter
-    def Direction(self, val: Direction | str | None) -> None:
+    def Direction(self, val: Union[Direction, str, None]) -> None:
         self._direction_ = as_enum(Direction, val)
 
     @property
     @overridefield
-    def Security(self) -> SecurityAPI | None:
+    def Security(self) -> Union[SecurityAPI, None]:
         return self._security_
     @Security.setter
-    def Security(self, val: int | SecurityAPI | None) -> None:
+    def Security(self, val: Union[int, SecurityAPI, None]) -> None:
         from Library.Universe.Security import SecurityAPI
         if isinstance(val, SecurityAPI): self._security_ = val
         elif val is not None: self._security_ = SecurityAPI(UID=val, db=self._db_, autoload=True)
 
     @property
     @overridefield
-    def EntryTimestamp(self) -> TimestampAPI | None:
+    def EntryTimestamp(self) -> Union[TimestampAPI, None]:
         return self._entry_timestamp_
     @EntryTimestamp.setter
-    def EntryTimestamp(self, val: datetime | TimestampAPI | None) -> None:
+    def EntryTimestamp(self, val: Union[datetime, TimestampAPI, None]) -> None:
         if isinstance(val, TimestampAPI): self._entry_timestamp_ = val
         elif val is not None:
             if self._entry_timestamp_: self._entry_timestamp_.DateTime = val
@@ -279,10 +279,10 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def EntryPrice(self) -> PriceAPI | None:
+    def EntryPrice(self) -> Union[PriceAPI, None]:
         return self._entry_price_
     @EntryPrice.setter
-    def EntryPrice(self, val: float | PriceAPI | None) -> None:
+    def EntryPrice(self, val: Union[float, PriceAPI, None]) -> None:
         price = val.Price if isinstance(val, PriceAPI) else val
         if price is None: return
         if self._entry_price_:
@@ -295,45 +295,45 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def StopLossPrice(self) -> PriceAPI | None:
+    def StopLossPrice(self) -> Union[PriceAPI, None]:
         return self._stop_loss_price_
     @StopLossPrice.setter
-    def StopLossPrice(self, val: float | PriceAPI | None) -> None:
+    def StopLossPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._stop_loss_price_ = self._assign_price_(self._stop_loss_price_, val)
 
     @property
     @overridefield
-    def TakeProfitPrice(self) -> PriceAPI | None:
+    def TakeProfitPrice(self) -> Union[PriceAPI, None]:
         return self._take_profit_price_
     @TakeProfitPrice.setter
-    def TakeProfitPrice(self, val: float | PriceAPI | None) -> None:
+    def TakeProfitPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._take_profit_price_ = self._assign_price_(self._take_profit_price_, val)
 
     @property
     @overridefield
-    def MaxRunUpPrice(self) -> PriceAPI | None:
+    def MaxRunUpPrice(self) -> Union[PriceAPI, None]:
         return self._max_run_up_price_
     @MaxRunUpPrice.setter
-    def MaxRunUpPrice(self, val: float | PriceAPI | None) -> None:
+    def MaxRunUpPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._max_run_up_price_ = self._assign_price_(self._max_run_up_price_, val)
 
     @property
     @overridefield
-    def MaxDrawDownPrice(self) -> PriceAPI | None:
+    def MaxDrawDownPrice(self) -> Union[PriceAPI, None]:
         return self._max_draw_down_price_
     @MaxDrawDownPrice.setter
-    def MaxDrawDownPrice(self, val: float | PriceAPI | None) -> None:
+    def MaxDrawDownPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._max_draw_down_price_ = self._assign_price_(self._max_draw_down_price_, val)
 
     @property
     @overridefield
-    def ExitPrice(self) -> PriceAPI | None:
+    def ExitPrice(self) -> Union[PriceAPI, None]:
         return self._exit_price_
     @ExitPrice.setter
-    def ExitPrice(self, val: float | PriceAPI | None) -> None:
+    def ExitPrice(self, val: Union[float, PriceAPI, None]) -> None:
         self._exit_price_ = self._assign_price_(self._exit_price_, val)
 
-    def _assign_price_(self, backing: PriceAPI | None, val: float | PriceAPI | None) -> PriceAPI | None:
+    def _assign_price_(self, backing: Union[PriceAPI, None], val: Union[float, PriceAPI, None]) -> Union[PriceAPI, None]:
         if isinstance(val, PriceAPI): return val
         if val is None: return backing
         if backing:
@@ -344,69 +344,69 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def StopLossPnL(self) -> PnLAPI | None:
+    def StopLossPnL(self) -> Union[PnLAPI, None]:
         return self._stop_loss_pnl_
     @StopLossPnL.setter
-    def StopLossPnL(self, val: float | PnLAPI | None) -> None:
+    def StopLossPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._stop_loss_pnl_ = self._assign_pnl_(self._stop_loss_pnl_, val)
 
     @property
     @overridefield
-    def TakeProfitPnL(self) -> PnLAPI | None:
+    def TakeProfitPnL(self) -> Union[PnLAPI, None]:
         return self._take_profit_pnl_
     @TakeProfitPnL.setter
-    def TakeProfitPnL(self, val: float | PnLAPI | None) -> None:
+    def TakeProfitPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._take_profit_pnl_ = self._assign_pnl_(self._take_profit_pnl_, val)
 
     @property
     @overridefield
-    def MaxRunUpPnL(self) -> PnLAPI | None:
+    def MaxRunUpPnL(self) -> Union[PnLAPI, None]:
         return self._max_run_up_pnl_
     @MaxRunUpPnL.setter
-    def MaxRunUpPnL(self, val: float | PnLAPI | None) -> None:
+    def MaxRunUpPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._max_run_up_pnl_ = self._assign_pnl_(self._max_run_up_pnl_, val)
 
     @property
     @overridefield
-    def MaxDrawDownPnL(self) -> PnLAPI | None:
+    def MaxDrawDownPnL(self) -> Union[PnLAPI, None]:
         return self._max_draw_down_pnl_
     @MaxDrawDownPnL.setter
-    def MaxDrawDownPnL(self, val: float | PnLAPI | None) -> None:
+    def MaxDrawDownPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._max_draw_down_pnl_ = self._assign_pnl_(self._max_draw_down_pnl_, val)
 
     @property
     @overridefield
-    def GrossPnL(self) -> PnLAPI | None:
+    def GrossPnL(self) -> Union[PnLAPI, None]:
         return self._gross_pnl_
     @GrossPnL.setter
-    def GrossPnL(self, val: float | PnLAPI | None) -> None:
+    def GrossPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._gross_pnl_ = self._assign_pnl_(self._gross_pnl_, val)
 
     @property
     @overridefield
-    def CommissionPnL(self) -> PnLAPI | None:
+    def CommissionPnL(self) -> Union[PnLAPI, None]:
         return self._commission_pnl_
     @CommissionPnL.setter
-    def CommissionPnL(self, val: float | PnLAPI | None) -> None:
+    def CommissionPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._commission_pnl_ = self._assign_pnl_(self._commission_pnl_, val)
 
     @property
     @overridefield
-    def SwapPnL(self) -> PnLAPI | None:
+    def SwapPnL(self) -> Union[PnLAPI, None]:
         return self._swap_pnl_
     @SwapPnL.setter
-    def SwapPnL(self, val: float | PnLAPI | None) -> None:
+    def SwapPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._swap_pnl_ = self._assign_pnl_(self._swap_pnl_, val)
 
     @property
     @overridefield
-    def NetPnL(self) -> PnLAPI | None:
+    def NetPnL(self) -> Union[PnLAPI, None]:
         return self._net_pnl_
     @NetPnL.setter
-    def NetPnL(self, val: float | PnLAPI | None) -> None:
+    def NetPnL(self, val: Union[float, PnLAPI, None]) -> None:
         self._net_pnl_ = self._assign_pnl_(self._net_pnl_, val)
 
-    def _assign_pnl_(self, backing: PnLAPI | None, val: float | PnLAPI | None) -> PnLAPI | None:
+    def _assign_pnl_(self, backing: Union[PnLAPI, None], val: Union[float, PnLAPI, None]) -> Union[PnLAPI, None]:
         if isinstance(val, PnLAPI): return val
         if val is None: return backing
         if backing:
@@ -416,10 +416,10 @@ class PositionAPI(DatapointAPI):
 
     @property
     @overridefield
-    def EntryBalance(self) -> float | None:
+    def EntryBalance(self) -> Union[float, None]:
         return self._entry_balance_
     @EntryBalance.setter
-    def EntryBalance(self, val: float | None) -> None:
+    def EntryBalance(self, val: Union[float, None]) -> None:
         self._entry_balance_ = val
         for backing in (self._stop_loss_pnl_, self._take_profit_pnl_, self._max_run_up_pnl_, self._max_draw_down_pnl_, self._gross_pnl_, self._commission_pnl_, self._swap_pnl_, self._net_pnl_):
             if backing: backing.Reference = val
@@ -431,7 +431,7 @@ class PositionAPI(DatapointAPI):
     def IsShort(self) -> bool:
         return self._direction_ == Direction.Sell
     @property
-    def RiskReward(self) -> float | None:
+    def RiskReward(self) -> Union[float, None]:
         if self._entry_price_ is None or self._stop_loss_price_ is None or self._take_profit_price_ is None: return None
         ep, sl, tp = self._entry_price_.Price, self._stop_loss_price_.Price, self._take_profit_price_.Price
         if ep is None or sl is None or tp is None: return None
@@ -439,57 +439,57 @@ class PositionAPI(DatapointAPI):
         if not risk: return None
         return reward / risk
     @property
-    def RiskAmount(self) -> float | None:
+    def RiskAmount(self) -> Union[float, None]:
         if self._stop_loss_pnl_ and self._stop_loss_pnl_.PnL is not None:
             return abs(self._stop_loss_pnl_.PnL)
         return None
 
     @property
-    def RewardAmount(self) -> float | None:
+    def RewardAmount(self) -> Union[float, None]:
         if self._take_profit_pnl_ and self._take_profit_pnl_.PnL is not None:
             return abs(self._take_profit_pnl_.PnL)
         return None
 
     @property
-    def MarginUtilization(self) -> float | None:
+    def MarginUtilization(self) -> Union[float, None]:
         if not self.UsedMargin or not self._entry_balance_: return None
         return self.UsedMargin / self._entry_balance_
 
     @property
-    def IsProfitable(self) -> bool | None:
+    def IsProfitable(self) -> Union[bool, None]:
         if self._net_pnl_ and self._net_pnl_.PnL is not None:
             return self._net_pnl_.PnL > 0
         return None
 
     @property
-    def NetReturn(self) -> float | None:
+    def NetReturn(self) -> Union[float, None]:
         if self._net_pnl_:
             return self._net_pnl_.Return
         return None
 
     @property
-    def Drawdown(self) -> float | None:
+    def Drawdown(self) -> Union[float, None]:
         if self._max_draw_down_pnl_:
             return self._max_draw_down_pnl_.Return
         return None
 
     @property
-    def Runup(self) -> float | None:
+    def Runup(self) -> Union[float, None]:
         if self._max_run_up_pnl_:
             return self._max_run_up_pnl_.Return
         return None
 
     @property
-    def Leverage(self) -> float | None:
+    def Leverage(self) -> Union[float, None]:
         if not self.UsedMargin or self.Volume is None: return None
         return self.Volume / self.UsedMargin
 
     @property
     @overridefield
-    def Order(self) -> OrderAPI | None:
+    def Order(self) -> Union[OrderAPI, None]:
         return self._order_
     @Order.setter
-    def Order(self, val: int | OrderAPI | None) -> None:
+    def Order(self, val: Union[int, OrderAPI, None]) -> None:
         from Library.Portfolio.Order import OrderAPI
         if isinstance(val, OrderAPI): self._order_ = val
         elif val is not None: self._order_ = OrderAPI(UID=val, db=self._db_, autoload=True)

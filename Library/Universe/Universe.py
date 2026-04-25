@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import ClassVar, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Union, ClassVar, TYPE_CHECKING
 
 from Library.Database.Dataframe import pl
 from Library.Database.Datapoint import DatapointAPI
@@ -25,13 +25,13 @@ class UniverseAPI(DatapointAPI):
     Table: ClassVar[str] = "Universe"
 
     @staticmethod
-    def save_categories(data: CategoryAPI | Sequence[CategoryAPI], by: str = "Autosave") -> None:
+    def save_categories(data: Union[CategoryAPI, Sequence[CategoryAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_categories(data: CategoryAPI | Sequence[CategoryAPI]) -> None:
+    def load_categories(data: Union[CategoryAPI, Sequence[CategoryAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -44,18 +44,18 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_categories(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_categories(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Category import CategoryAPI
         db.upsert(schema=CategoryAPI.Schema, table=CategoryAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def save_providers(data: ProviderAPI | Sequence[ProviderAPI], by: str = "Autosave") -> None:
+    def save_providers(data: Union[ProviderAPI, Sequence[ProviderAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_providers(data: ProviderAPI | Sequence[ProviderAPI]) -> None:
+    def load_providers(data: Union[ProviderAPI, Sequence[ProviderAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -68,18 +68,18 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_providers(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_providers(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Provider import ProviderAPI
         db.upsert(schema=ProviderAPI.Schema, table=ProviderAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def save_tickers(data: TickerAPI | Sequence[TickerAPI], by: str = "Autosave") -> None:
+    def save_tickers(data: Union[TickerAPI, Sequence[TickerAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_tickers(data: TickerAPI | Sequence[TickerAPI]) -> None:
+    def load_tickers(data: Union[TickerAPI, Sequence[TickerAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -92,18 +92,18 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_tickers(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_tickers(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Ticker import TickerAPI
         db.upsert(schema=TickerAPI.Schema, table=TickerAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def save_timeframes(data: TimeframeAPI | Sequence[TimeframeAPI], by: str = "Autosave") -> None:
+    def save_timeframes(data: Union[TimeframeAPI, Sequence[TimeframeAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_timeframes(data: TimeframeAPI | Sequence[TimeframeAPI]) -> None:
+    def load_timeframes(data: Union[TimeframeAPI, Sequence[TimeframeAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -116,18 +116,18 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_timeframes(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_timeframes(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Timeframe import TimeframeAPI
         db.upsert(schema=TimeframeAPI.Schema, table=TimeframeAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def save_contracts(data: ContractAPI | Sequence[ContractAPI], by: str = "Autosave") -> None:
+    def save_contracts(data: Union[ContractAPI, Sequence[ContractAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_contracts(data: ContractAPI | Sequence[ContractAPI]) -> None:
+    def load_contracts(data: Union[ContractAPI, Sequence[ContractAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -140,18 +140,18 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_contracts(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_contracts(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Contract import ContractAPI
         db.upsert(schema=ContractAPI.Schema, table=ContractAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])
 
     @staticmethod
-    def save_securities(data: SecurityAPI | Sequence[SecurityAPI], by: str = "Autosave") -> None:
+    def save_securities(data: Union[SecurityAPI, Sequence[SecurityAPI]], by: str = "Autosave") -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.save(by=by)
         else: data.save(by=by)
 
     @staticmethod
-    def load_securities(data: SecurityAPI | Sequence[SecurityAPI]) -> None:
+    def load_securities(data: Union[SecurityAPI, Sequence[SecurityAPI]]) -> None:
         if isinstance(data, (list, tuple)):
             for item in data: item.load()
         else: data.load()
@@ -164,6 +164,6 @@ class UniverseAPI(DatapointAPI):
         return df
 
     @staticmethod
-    def push_securities(db: DatabaseAPI, data: pl.DataFrame | list[dict] | tuple | dict) -> None:
+    def push_securities(db: DatabaseAPI, data: Union[pl.DataFrame, list[dict], tuple, dict]) -> None:
         from Library.Universe.Security import SecurityAPI
         db.upsert(schema=SecurityAPI.Schema, table=SecurityAPI.Table, data=data, key=["UID"], exclude=["CreatedAt", "CreatedBy"])

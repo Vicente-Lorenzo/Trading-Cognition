@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import datetime
 import threading
-from typing import Callable, Any
 from dataclasses import dataclass
 from typing_extensions import Self
-from collections.abc import Sequence
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import Union, Callable, Any
 
 from Library.Utility.Statistic import Timer
 from Library.Database.Dataframe import pd, pl
@@ -22,7 +22,7 @@ class IdentityKey:
     """
     Represents an auto-generated identity column (surrogate key).
     """
-    dtype: type | pl.DataType
+    dtype: Union[type, pl.DataType]
     primary: bool = False
 
 @dataclass
@@ -30,14 +30,14 @@ class PrimaryKey:
     """
     Represents a primary key in the database structure.
     """
-    dtype: type | pl.DataType
+    dtype: Union[type, pl.DataType]
 
 @dataclass
 class ForeignKey:
     """
     Represents a foreign key in the database structure.
     """
-    dtype: type | pl.DataType
+    dtype: Union[type, pl.DataType]
     reference: str
     primary: bool = False
 
@@ -47,7 +47,7 @@ class DatabaseAPI(ServiceAPI, ABC):
     """
 
     _ALL_: str = "*"
-    _ADMIN_: str | None = None
+    _ADMIN_: Union[str, None] = None
     _PARAMETER_TOKEN_: Callable[[int], str] | None = None
 
     _PYTHON_DATATYPE_MAPPING_: dict = {
@@ -63,9 +63,9 @@ class DatabaseAPI(ServiceAPI, ABC):
         datetime.datetime: pl.Datetime,
     }
 
-    _CHECK_DATATYPE_MAPPING_: dict | None = None
-    _CREATE_DATATYPE_MAPPING_: dict | None = None
-    _DESCRIPTION_DATATYPE_MAPPING_: tuple | None = None
+    _CHECK_DATATYPE_MAPPING_: Union[dict, None] = None
+    _CREATE_DATATYPE_MAPPING_: Union[dict, None] = None
+    _DESCRIPTION_DATATYPE_MAPPING_: Union[tuple, None] = None
     _STRUCTURE_: dict[str, type | type[pl.DataType] | pl.DataType | IdentityKey | PrimaryKey | ForeignKey] | None = None
 
     def __init_subclass__(cls, **kwargs) -> None:
@@ -98,9 +98,9 @@ class DatabaseAPI(ServiceAPI, ABC):
                  user: str,
                  password: str,
                  admin: bool,
-                 database: str | None,
-                 schema: str | None,
-                 table: str | None,
+                 database: Union[str, None],
+                 schema: Union[str, None],
+                 table: Union[str, None],
                  legacy: bool,
                  migrate: bool,
                  autocommit: bool) -> None:
@@ -114,9 +114,9 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._migrate_: bool = migrate
         self._autocommit_: bool = autocommit
 
-        self._database_: str | None = database
-        self._schema_: str | None = schema
-        self._table_: str | None = table
+        self._database_: Union[str, None] = database
+        self._schema_: Union[str, None] = schema
+        self._table_: Union[str, None] = table
 
         self._connection_ = None
         self._transaction_ = None
@@ -168,11 +168,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return f"SELECT {columns} FROM {target}"
 
     @staticmethod
-    def _condition_(sql: str, condition: str | None) -> str:
+    def _condition_(sql: str, condition: Union[str, None]) -> str:
         return f"{sql} WHERE {condition}" if condition else sql
 
     @staticmethod
-    def _order_(sql: str, order: str | None) -> str:
+    def _order_(sql: str, order: Union[str, None]) -> str:
         return f"{sql} ORDER BY {order}" if order else sql
 
     @staticmethod
@@ -225,7 +225,7 @@ class DatabaseAPI(ServiceAPI, ABC):
     def _hash_(self) -> int:
         return hash(tuple(sorted(self._params_.items())))
 
-    def _query_(self, query: QueryAPI, **kwargs) -> tuple[str, list[int | str], dict]:
+    def _query_(self, query: QueryAPI, **kwargs) -> tuple[str, list[Union[int, str]], dict]:
         defaults = {}
         if self.database is not None: defaults["database"] = self.database
         if self.schema is not None: defaults["schema"] = self.schema
@@ -234,7 +234,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         sql, configuration = query.compile(self._PARAMETER_TOKEN_, **kwargs)
         return sql, configuration, kwargs
 
-    def _frame_(self, result, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def _frame_(self, result, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         if result is None: rows = []
         elif isinstance(result, list): rows = result
         elif isinstance(result, tuple): rows = [result]
@@ -249,7 +249,7 @@ class DatabaseAPI(ServiceAPI, ABC):
                 schema[col_name] = None
         return self.frame(data=rows, schema=schema, legacy=legacy)
 
-    def _check_(self, structure: dict | None = None) -> str:
+    def _check_(self, structure: Union[dict, None] = None) -> str:
         structure = structure if structure is not None else self._STRUCTURE_
         values = []
         for name, dtype in structure.items():
@@ -259,7 +259,7 @@ class DatabaseAPI(ServiceAPI, ABC):
             values.append(f"('{name}', '{datatype}', {is_pk}, {is_fk})")
         return ",\n    ".join(values)
 
-    def _create_(self, structure: dict | None = None) -> str:
+    def _create_(self, structure: Union[dict, None] = None) -> str:
         structure = structure if structure is not None else self._STRUCTURE_
         ql, qr = self._quote_
         defs = []
@@ -282,18 +282,18 @@ class DatabaseAPI(ServiceAPI, ABC):
         return ",\n    ".join(defs)
 
     @property
-    def database(self) -> str | None:
+    def database(self) -> Union[str, None]:
         """Returns the current database name."""
         if self._admin_ or not self._database_: return self._ADMIN_
         return self._database_
 
     @property
-    def schema(self) -> str | None:
+    def schema(self) -> Union[str, None]:
         """Returns the current schema name."""
         return self._schema_
 
     @property
-    def table(self) -> str | None:
+    def table(self) -> Union[str, None]:
         """Returns the current table name."""
         return self._table_
 
@@ -396,7 +396,7 @@ class DatabaseAPI(ServiceAPI, ABC):
             self._log_.info(lambda: f"Rollback Operation: Closed Transaction ({timer.result()})")
         return self
 
-    def fetchone(self, *, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def fetchone(self, *, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches the next row of a query result set.
         :param legacy: If True, returns Pandas DataFrames instead of Polars.
@@ -406,7 +406,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._log_.info(lambda: f"Fetch One Operation: Fetched {len(df)} data points ({timer.result()})")
         return df
 
-    def fetchmany(self, *, n: int, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def fetchmany(self, *, n: int, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches the next set of rows of a query result.
         :param n: The number of rows to fetch.
@@ -417,7 +417,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._log_.info(lambda: f"Fetch Many Operation: Fetched {len(df)} data points ({timer.result()})")
         return df
 
-    def fetchall(self, *, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+    def fetchall(self, *, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches all remaining rows of a query result.
         :param legacy: If True, returns Pandas DataFrames instead of Polars.
@@ -427,7 +427,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._log_.info(lambda: f"Fetch All Operation: Fetched {len(df)} data points ({timer.result()})")
         return df
 
-    def executeone(self, query: QueryAPI, *args, database: str | Sequence | None | Missing = MISSING, schema: str | Sequence | None | Missing = MISSING, table: str | Sequence | None | Missing = MISSING, admin: bool | Missing = MISSING, **kwargs) -> Self:
+    def executeone(self, query: QueryAPI, *args, database: Union[str, Sequence, None, Missing] = MISSING, schema: Union[str, Sequence, None, Missing] = MISSING, table: Union[str, Sequence, None, Missing] = MISSING, admin: Union[bool, Missing] = MISSING, **kwargs) -> Self:
         """
         Executes a query with a single set of parameters.
         :param query: The QueryAPI instance to execute.
@@ -468,7 +468,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._log_.info(lambda: f"Execute One Operation: Executed ({timer.result()})")
         return self
 
-    def executemany(self, query: QueryAPI, *args, database: str | Sequence | None | Missing = MISSING, schema: str | Sequence | None | Missing = MISSING, table: str | Sequence | None | Missing = MISSING, admin: bool | Missing = MISSING, **kwargs) -> Self:
+    def executemany(self, query: QueryAPI, *args, database: Union[str, Sequence, None, Missing] = MISSING, schema: Union[str, Sequence, None, Missing] = MISSING, table: Union[str, Sequence, None, Missing] = MISSING, admin: Union[bool, Missing] = MISSING, **kwargs) -> Self:
         """
         Executes a query repeatedly with a batch of parameters.
         :param query: The QueryAPI instance to execute.
@@ -522,7 +522,7 @@ class DatabaseAPI(ServiceAPI, ABC):
         self._log_.info(lambda: f"Execute Many Operation: Executed ({timer.result()})")
         return self
 
-    def execute(self, query: QueryAPI, *args, database: str | Sequence | None | Missing = MISSING, schema: str | Sequence | None | Missing = MISSING, table: str | Sequence | None | Missing = MISSING, admin: bool | Missing = MISSING, **kwargs) -> Self:
+    def execute(self, query: QueryAPI, *args, database: Union[str, Sequence, None, Missing] = MISSING, schema: Union[str, Sequence, None, Missing] = MISSING, table: Union[str, Sequence, None, Missing] = MISSING, admin: Union[bool, Missing] = MISSING, **kwargs) -> Self:
         """
         Executes a query, handling either single or multiple parameter sets automatically.
         :param query: The QueryAPI instance to execute.
@@ -547,11 +547,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def list(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
                system: bool = False,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Lists available databases, schemas, and tables.
         :param database: Target database(s).
@@ -589,12 +589,12 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self.frame(self._concat_(frames) if frames else df, legacy=legacy)
 
     def search(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               column: str | Sequence | None = None,
-               row: int | float | str | None = None,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               column: Union[str, Sequence, None] = None,
+               row: Union[int, float, str, None] = None,
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Searches for specific values within the catalog.
         :param database: Target database(s).
@@ -650,9 +650,9 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self.frame(self._concat_(frames) if frames else pl.DataFrame({"Database": [], "Schema": [], "Table": [], "Column": []}), legacy=legacy)
 
     def exists(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING) -> bool:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING) -> bool:
         """
         Checks if a database, schema, or table exists.
         :param database: Target database.
@@ -694,10 +694,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return True
 
     def diff(self, *,
-               database: str | None | Missing = MISSING,
-               schema: str | None | Missing = MISSING,
-               table: str | None | Missing = MISSING,
-               structure: dict | None | Missing = MISSING) -> bool:
+               database: Union[str, None, Missing] = MISSING,
+               schema: Union[str, None, Missing] = MISSING,
+               table: Union[str, None, Missing] = MISSING,
+               structure: Union[dict, None, Missing] = MISSING) -> bool:
         """
         Checks for differences between the expected structure and the actual table structure.
         :param database: Target database.
@@ -726,8 +726,8 @@ class DatabaseAPI(ServiceAPI, ABC):
         return not empty
 
     def sessions(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Retrieves active database sessions.
         :param database: Target database.
@@ -741,10 +741,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self.executeone(self._LIST_SESSIONS_QUERY_, database=database or "%", admin=True).fetchall(legacy=legacy)
 
     def size(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Retrieves the storage consumption of databases, schemas, and tables.
         :param database: Target database(s).
@@ -782,10 +782,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self.frame(df, legacy=legacy)
 
     def create(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               structure: dict | None | Missing = MISSING) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               structure: Union[dict, None, Missing] = MISSING) -> Self:
         """
         Creates a database, schema, or table if it does not exist.
         :param database: Target database.
@@ -847,9 +847,9 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def delete(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING) -> Self:
         """
         Deletes a database, schema, or table.
         :param database: Target database.
@@ -892,10 +892,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def refactor(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               name: str | Sequence | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               name: Union[str, Sequence, None] = None) -> Self:
         """
         Renames a database, schema, or table.
         :param database: Target database.
@@ -960,10 +960,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def migrate(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               structure: dict | None | Missing = MISSING) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               structure: Union[dict, None, Missing] = MISSING) -> Self:
         """
         Migrates the structure of a database, schema, or table.
         :param database: Target database.
@@ -1039,10 +1039,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def add(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               structure: dict | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               structure: Union[dict, None] = None) -> Self:
         """
         Adds new columns to an existing table.
         :param database: Target database.
@@ -1084,10 +1084,10 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def drop(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               column: str | Sequence | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               column: Union[str, Sequence, None] = None) -> Self:
         """
         Drops a column from an existing table.
         :param database: Target database.
@@ -1122,11 +1122,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def rename(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               column: str | Sequence | None = None,
-               name: str | Sequence | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               column: Union[str, Sequence, None] = None,
+               name: Union[str, Sequence, None] = None) -> Self:
         """
         Renames a column in an existing table.
         :param database: Target database.
@@ -1164,11 +1164,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def reorder(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               columns: Sequence[str] | None = None,
-               structure: dict | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               columns: Union[Sequence[str], None] = None,
+               structure: Union[dict, None] = None) -> Self:
         """
         Reorders the columns in an existing table.
         :param database: Target database.
@@ -1212,15 +1212,15 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def select(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               columns: str | Sequence | None = None,
-               condition: str | None = None,
-               order: str | None = None,
-               limit: int | None = None,
-               parameters: dict | None = None,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               columns: Union[str, Sequence, None] = None,
+               condition: Union[str, None] = None,
+               order: Union[str, None] = None,
+               limit: Union[int, None] = None,
+               parameters: Union[dict, None] = None,
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Selects data from a table.
         :param database: Target database.
@@ -1255,9 +1255,9 @@ class DatabaseAPI(ServiceAPI, ABC):
         return db.fetchall(legacy=legacy)
 
     def insert(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
                data: Any = None) -> Self:
         """
         Inserts data into a table.
@@ -1296,11 +1296,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def update(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
                data: Any = None,
-               condition: str | None = None) -> Self:
+               condition: Union[str, None] = None) -> Self:
         """
         Updates data in a table.
         :param database: Target database.
@@ -1337,13 +1337,13 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def upsert(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
                data: Any = None,
-               key: str | Sequence[str] | None = None,
-               exclude: Sequence[str] | None = None,
-               returning: str | Sequence[str] | None = None) -> Self | pd.DataFrame | pl.DataFrame:
+               key: Union[str, Sequence[str], None] = None,
+               exclude: Union[Sequence[str], None] = None,
+               returning: Union[str, Sequence[str], None] = None) -> Union[Self, pd.DataFrame, pl.DataFrame]:
         """
         Upserts (inserts or updates) data in a table.
         :param database: Target database.
@@ -1394,11 +1394,11 @@ class DatabaseAPI(ServiceAPI, ABC):
         return self
 
     def remove(self, *,
-               database: str | Sequence | None | Missing = MISSING,
-               schema: str | Sequence | None | Missing = MISSING,
-               table: str | Sequence | None | Missing = MISSING,
-               condition: str | None = None,
-               parameters: dict | None = None) -> Self:
+               database: Union[str, Sequence, None, Missing] = MISSING,
+               schema: Union[str, Sequence, None, Missing] = MISSING,
+               table: Union[str, Sequence, None, Missing] = MISSING,
+               condition: Union[str, None] = None,
+               parameters: Union[dict, None] = None) -> Self:
         """
         Removes rows from a table.
         :param database: Target database.
@@ -1469,8 +1469,8 @@ class DatabaseAPI(ServiceAPI, ABC):
             raise
 
     def kill(self, *,
-               id: int | str | Sequence | None | Missing = MISSING,
-               database: str | Sequence | None | Missing = MISSING) -> Self:
+               id: Union[int, str, Sequence, None, Missing] = MISSING,
+               database: Union[str, Sequence, None, Missing] = MISSING) -> Self:
         """
         Terminates active database sessions.
         :param id: The session ID(s) to kill.

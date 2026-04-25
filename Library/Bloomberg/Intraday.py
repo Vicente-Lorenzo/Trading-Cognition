@@ -1,4 +1,5 @@
 import blpapi
+from typing import Union
 from datetime import datetime
 
 from Library.Database.Dataframe import pd, pl
@@ -15,7 +16,7 @@ class IntradayAPI(ServiceAPI):
              interval: int = 1,
              event_type: str = "TRADE",
              timeout: int = 0,
-             legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+             legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches intraday bar data for a security.
         :param security: Security ticker.
@@ -73,9 +74,9 @@ class IntradayAPI(ServiceAPI):
               security: str,
               start: datetime,
               stop: datetime = None,
-              event_types: str | list[str] = "TRADE",
+              event_types: Union[str, list[str]] = "TRADE",
               timeout: int = 0,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame:
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame]:
         """
         Fetches intraday tick data for a security.
         :param security: Security ticker.

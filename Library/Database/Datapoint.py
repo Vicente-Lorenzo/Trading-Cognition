@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import ClassVar, TYPE_CHECKING, Any
 from dataclasses import dataclass, field, InitVar
+from typing import Union, ClassVar, TYPE_CHECKING, Any
 
 from Library.Database.Dataframe import pl
 from Library.Database.Dataclass import DataclassAPI
@@ -19,18 +19,18 @@ class DatapointAPI(DataclassAPI):
     Schema: ClassVar[str]
     Table: ClassVar[str]
 
-    CreatedAt: datetime | None = field(default=None, kw_only=True)
-    CreatedBy: str | None = field(default=None, kw_only=True)
-    UpdatedAt: datetime | None = field(default=None, kw_only=True)
-    UpdatedBy: str | None = field(default=None, kw_only=True)
+    CreatedAt: Union[datetime, None] = field(default=None, kw_only=True)
+    CreatedBy: Union[str, None] = field(default=None, kw_only=True)
+    UpdatedAt: Union[datetime, None] = field(default=None, kw_only=True)
+    UpdatedBy: Union[str, None] = field(default=None, kw_only=True)
 
-    db: InitVar[DatabaseAPI | None] = field(default=None, kw_only=True)
+    db: InitVar[Union[DatabaseAPI, None]] = field(default=None, kw_only=True)
     migrate: InitVar[bool] = field(default=False, kw_only=True)
     autosave: InitVar[bool] = field(default=False, kw_only=True)
     autoload: InitVar[bool] = field(default=False, kw_only=True)
     autooverload: InitVar[bool] = field(default=False, kw_only=True)
 
-    _db_: DatabaseAPI | None = field(default=None, init=False, repr=False)
+    _db_: Union[DatabaseAPI, None] = field(default=None, init=False, repr=False)
     _migrate_: bool = field(default=False, init=False, repr=False)
     _autosave_: bool = field(default=False, init=False, repr=False)
     _autoload_: bool = field(default=False, init=False, repr=False)
@@ -57,7 +57,7 @@ class DatapointAPI(DataclassAPI):
         }
 
     def __post_init__(self,
-                      db: DatabaseAPI | None,
+                      db: Union[DatabaseAPI, None],
                       migrate: bool,
                       autosave: bool,
                       autoload: bool,
@@ -136,7 +136,7 @@ class DatapointAPI(DataclassAPI):
     def save(self, by: str = "Autosave") -> None:
         self._push_(by=by)
 
-    def _fetch_(self, condition: str, parameters: dict, overload: bool) -> dict | None:
+    def _fetch_(self, condition: str, parameters: dict, overload: bool) -> Union[dict, None]:
         if self._db_ is None: return None
         df = self._db_.select(schema=self.Schema, table=self.Table, condition=condition, parameters=parameters, limit=1, legacy=False)
         if df.is_empty(): return None
@@ -150,14 +150,14 @@ class DatapointAPI(DataclassAPI):
         finally: self._autosave_ = save_state
         return row
 
-    def _pull_(self, overload: bool) -> dict | None:
+    def _pull_(self, overload: bool) -> Union[dict, None]:
         if self._db_ is None: return None
         ident = self.identifier()
         if not ident: return None
         return self._fetch_(condition=" AND ".join([f'"{k}" = :{k}:' for k in ident.keys()]), parameters=ident, overload=overload)
 
-    def overload(self) -> dict | None:
+    def overload(self) -> Union[dict, None]:
         return self._pull_(overload=True)
 
-    def load(self) -> dict | None:
+    def load(self) -> Union[dict, None]:
         return self._pull_(overload=False)

@@ -1,3 +1,4 @@
+from typing import Union
 from typing_extensions import Self
 from dataclasses import dataclass, field
 
@@ -6,7 +7,7 @@ from Library.App.Session.Storage import StorageAPI
 @dataclass(kw_only=True)
 class RoutingAPI(StorageAPI):
 
-    href: str | None = field(default=None, init=True, repr=True)
+    href: Union[str, None] = field(default=None, init=True, repr=True)
     refresh: bool = field(default=False, init=True, repr=True)
     external: bool = field(default=False, init=True, repr=True)
     replace: bool = field(default=False, init=True, repr=True)

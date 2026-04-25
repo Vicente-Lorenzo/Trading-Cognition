@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime, timezone
 
 from Library.Database.Dataframe import pd, pl
@@ -16,11 +17,11 @@ class PortfolioAPI(ServiceAPI):
     _MARGIN_MODE_MAP_ = {0: MarginMode.Max, 1: MarginMode.Sum, 2: MarginMode.Net}
 
     @classmethod
-    def _dt_(cls, ms: int | None) -> datetime | None:
+    def _dt_(cls, ms: Union[int, None]) -> Union[datetime, None]:
         if not ms: return None
         return timestamp_to_datetime(ms, milliseconds=True).replace(tzinfo=timezone.utc)
 
-    def account(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[AccountAPI]:
+    def account(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[AccountAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOATraderReq",
@@ -42,7 +43,7 @@ class PortfolioAPI(ServiceAPI):
         self._log_.info(lambda: f"Account Operation: Fetched account info ({timer.result()})")
         return result
 
-    def accounts(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[AccountAPI]:
+    def accounts(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[AccountAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAGetAccountListByAccessTokenReq",
@@ -63,7 +64,7 @@ class PortfolioAPI(ServiceAPI):
 
     def order(self,
               id: int,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[OrderAPI]:
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[OrderAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAOrderDetailsReq",
@@ -78,9 +79,9 @@ class PortfolioAPI(ServiceAPI):
         return result
 
     def orders(self,
-               start: datetime | None = None,
-               stop: datetime | None = None,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[OrderAPI]:
+               start: Union[datetime, None] = None,
+               stop: Union[datetime, None] = None,
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[OrderAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             from Library.Spotware.Market import MarketAPI
@@ -103,7 +104,7 @@ class PortfolioAPI(ServiceAPI):
 
     def position(self,
                  id: int,
-                 legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[PositionAPI]:
+                 legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[PositionAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAReconcileReq",
@@ -116,7 +117,7 @@ class PortfolioAPI(ServiceAPI):
         self._log_.info(lambda: f"Position Operation: Fetched position {id} ({timer.result()})")
         return result
 
-    def positions(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[PositionAPI]:
+    def positions(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[PositionAPI]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAReconcileReq",
@@ -132,8 +133,8 @@ class PortfolioAPI(ServiceAPI):
     def trade(self,
               id: int,
               start: datetime,
-              stop: datetime | None = None,
-              legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[TradeAPI]:
+              stop: Union[datetime, None] = None,
+              legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[TradeAPI]]:
         from ctrader_open_api import Protobuf
         stop = stop or datetime.now(timezone.utc)
         def _fetch_():
@@ -153,9 +154,9 @@ class PortfolioAPI(ServiceAPI):
 
     def trades(self,
                start: datetime,
-               stop: datetime | None = None,
+               stop: Union[datetime, None] = None,
                rows: int = 1000,
-               legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[TradeAPI]:
+               legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[TradeAPI]]:
         from ctrader_open_api import Protobuf
         stop = stop or datetime.now(timezone.utc)
         def _fetch_():
@@ -173,7 +174,7 @@ class PortfolioAPI(ServiceAPI):
         self._log_.info(lambda: f"Trades Operation: Fetched {len(result)} trades ({timer.result()})")
         return result
 
-    def pnl(self, legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+    def pnl(self, legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         from ctrader_open_api import Protobuf
         def _fetch_():
             request = Protobuf.get("ProtoOAGetPositionUnrealizedPnLReq",
@@ -193,8 +194,8 @@ class PortfolioAPI(ServiceAPI):
 
     def cashflow(self,
                  start: datetime,
-                 stop: datetime | None = None,
-                 legacy: bool | Missing = MISSING) -> pd.DataFrame | pl.DataFrame | list[dict]:
+                 stop: Union[datetime, None] = None,
+                 legacy: Union[bool, Missing] = MISSING) -> Union[pd.DataFrame, pl.DataFrame, list[dict]]:
         from ctrader_open_api import Protobuf
         stop = stop or datetime.now(timezone.utc)
         def _fetch_():

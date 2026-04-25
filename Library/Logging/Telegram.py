@@ -1,7 +1,7 @@
 import requests
 
 from io import BytesIO
-from typing import Callable
+from typing import Union, Callable
 
 from Library.Logging import VerboseLevel, LoggingAPI, TelegramConfigurationAPI
 from Library.Database.Dataframe import pl
@@ -37,8 +37,8 @@ class TelegramAPI(LoggingAPI):
     _LAB_MESSAGE_URL: str = _MESSAGE_URL.format(_LAB.Token, _LAB.ChatID)
     _LAB_DOCUMENT_URL: str = _DOCUMENT_URL.format(_LAB.Token, _LAB.ChatID)
 
-    _GROUP_MESSAGE_URL: str | None = None
-    _GROUP_DOCUMENT_URL: str | None = None
+    _GROUP_MESSAGE_URL: Union[str, None] = None
+    _GROUP_DOCUMENT_URL: Union[str, None] = None
 
     @classmethod
     def setup(cls, verbose: VerboseLevel, uid: str, **kwargs) -> None:

@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Classes import PositionType, Direction, TechnicalMode
 from Library.Parameters import Parameters
 
@@ -65,9 +66,9 @@ class NNFXStrategyAPI(StrategyAPI):
         self._normal_exit_buy = lambda update: any(f(update) for f in normal_exits_buy) if normal_exits_buy else False
         self._normal_exit_sell = lambda update: any(f(update) for f in normal_exits_sell) if normal_exits_sell else False
 
-        self._last_position_id: int | None = None
-        self._last_position_atr: float | None = None
-        self._last_position_trade_type: Direction | None = None
+        self._last_position_id: Union[int, None] = None
+        self._last_position_atr: Union[float, None] = None
+        self._last_position_trade_type: Union[Direction, None] = None
 
     def define_so_buy_action(self, update: PositionUpdate):
         self._last_position_id = update.Position.PositionID

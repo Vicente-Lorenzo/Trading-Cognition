@@ -1,5 +1,5 @@
 import psycopg
-from typing import Callable, Any
+from typing import Union, Callable, Any
 from collections.abc import Sequence
 
 from Library.Database.Dataframe import pl
@@ -98,9 +98,9 @@ class PostgresDatabaseAPI(DatabaseAPI):
                  user: str = "postgres",
                  password: str = "postgres",
                  admin: bool = False,
-                 database: str | None = None,
-                 schema: str | None = None,
-                 table: str | None = None,
+                 database: Union[str, None] = None,
+                 schema: Union[str, None] = None,
+                 table: Union[str, None] = None,
                  legacy: bool = False,
                  migrate: bool = False,
                  autocommit: bool = True) -> None:

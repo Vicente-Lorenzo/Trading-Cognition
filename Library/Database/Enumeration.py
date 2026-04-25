@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Union
 from difflib import SequenceMatcher
 
 def as_enum(cls_: type, value):
@@ -11,7 +12,7 @@ def as_enum(cls_: type, value):
 
 class Enumeration(Enum):
     @classmethod
-    def _missing_(cls, value: object) -> Enumeration | None:
+    def _missing_(cls, value: object) -> Union[Enumeration, None]:
         if not isinstance(value, str):
             return None
         normalized_value = "".join(c for c in value if c.isalnum()).lower()

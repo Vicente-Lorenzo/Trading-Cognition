@@ -1,3 +1,4 @@
+from typing import Union
 import copy
 import yaml
 
@@ -7,7 +8,7 @@ class ParametersAPI:
 
     PATH = Path("Library") / Path("Parameters")
     
-    def __init__(self, path: Path | None = None):
+    def __init__(self, path: Union[Path, None] = None):
         self.path = ParametersAPI.PATH if not path else path
         self.path.mkdir(parents=True, exist_ok=True)
 

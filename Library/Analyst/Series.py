@@ -1,3 +1,4 @@
+from typing import Union
 from Library.Database.Dataframe import pl
 
 class SeriesAPI:
@@ -5,15 +6,15 @@ class SeriesAPI:
     def __init__(self, sid: str):
         self._sid: str = sid
         self._offset: int = 1
-        self._data: pl.DataFrame | None = None
+        self._data: Union[pl.DataFrame, None] = None
 
     def data(self) -> pl.Series:
         return self._data[self._sid] if self._data is not None else pl.Series()
 
-    def head(self, n: int | None = None) -> pl.Series:
+    def head(self, n: Union[int, None] = None) -> pl.Series:
         return self.data().head(n)
 
-    def tail(self, n: int | None = None) -> pl.Series:
+    def tail(self, n: Union[int, None] = None) -> pl.Series:
         return self.data().tail(n)
 
     def init_data(self, data: pl.DataFrame) -> None:
@@ -22,7 +23,7 @@ class SeriesAPI:
     def update_offset(self, offset: int) -> None:
         self._offset = offset
 
-    def last(self, shift: int = 0) -> float | int:
+    def last(self, shift: int = 0) -> Union[float, int]:
         return self.data()[-(self._offset + shift)]
 
     def over(self, other, shift: int = 0) -> bool:

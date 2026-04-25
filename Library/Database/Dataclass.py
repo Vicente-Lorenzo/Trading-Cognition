@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from enum import Enum
-from typing import Type, Any, Self
+from typing import Union, Type, Any, Self
 from dataclasses import dataclass, field, InitVar
 
 from Library.Utility.Typing import MISSING
@@ -16,7 +16,7 @@ def coerce(value: Any) -> Any:
 
 class DatametaAPI:
 
-    def __init__(self, cls: Type, name: str | None = None):
+    def __init__(self, cls: Type, name: Union[str, None] = None):
         self._cls_ = cls
         self._name_ = name
 
@@ -27,10 +27,10 @@ class DatametaAPI:
             if base is not object
             for k, v in base.__dict__.items()
         }
-        def get_attribute_type_(attr_name: str) -> type | None:
+        def get_attribute_type_(attr_name: str) -> Union[type, None]:
             ann = attrs.get("__annotations__", {})
             return ann.get(attr_name, None)
-        def get_property_type_(prop_name: str) -> type | None:
+        def get_property_type_(prop_name: str) -> Union[type, None]:
             prop = attrs.get(prop_name, None)
             if isinstance(prop, property):
                 return prop.fget.__annotations__.get("return", None)
@@ -89,7 +89,7 @@ class DataclassAPI:
                 if getattr(f, "_field_type", None) != getattr(dataclasses, "_FIELD_CLASSVAR", None)}
 
     @classmethod
-    def parse(cls, data: tuple | list | dict, **overrides) -> Self:
+    def parse(cls, data: Union[tuple, list, dict], **overrides) -> Self:
         if isinstance(data, dict):
             valid = cls.initvars()
             kwargs = {k: v for k, v in data.items() if k in valid}
