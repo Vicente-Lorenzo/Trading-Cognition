@@ -1,10 +1,10 @@
 \subsection{Neural Networks}
 
-In today's world, where we have an abundance of data and easy access to it, the power of machine learning has become a game changer in many fields. At its core, machine learning relies on algorithms to identify patterns in data and to make decisions with minimal human intervention. Tom Mitchell, a leading figure in the field, explains it as \cite{mitchell_machine_1997}:
+Machine learning covers algorithms that find patterns in data and act on them without being programmed with the rules in advance. Tom Mitchell states the idea as follows \cite{mitchell_machine_1997}:
 \begin{quote}
 "A computer program is said to learn from experience E with respect to some task T and some performance measure P, if its performance on T, as measured by P, improves with experience E."
 \end{quote}
-This captures the essence of machine learning: creating models that automatically improve through experience. Neural networks, the topic of this section, are a class of machine learning models that operate within this framework by simulating the complex networks of the human brain.
+The definition is useful here because it describes exactly what a trading agent does: the task is choosing a position, the performance measure is the money that position makes, and the experience is the market data it has already seen. Neural networks, the subject of this section, are the class of models used to represent that behaviour.
 
 \subsubsection{Fundamentals and History}
 
@@ -17,7 +17,7 @@ Neural Networks (NN), named for their similarity to the structure of the human b
 \label{Figure:HumanNeuronVsArtificialNeuron}
 \end{figure}
 
-The concept of neural networks dates back to the 1950s with the perceptron, a simple model of a biological neuron developed by Frank Rosenblatt \cite{rosenblatt_perceptron_1958}. The perceptron marked the early stages of NN research, but was limited to linearly separable datasets, leading to some periods of reduced interest in the field, known as "AI winters." However, the 1980s brought a significant breakthrough with the backpropagation algorithm, enabling neural networks to learn patterns in non-linearly separable datasets using complex and multilayered models \cite{rumelhart_learning_1986}.
+The concept of neural networks dates back to the 1950s with the perceptron, a simple model of a biological neuron developed by Frank Rosenblatt \cite{rosenblatt_perceptron_1958}. The perceptron marked the early stages of NN research, but was limited to linearly separable datasets, leading to some periods of reduced interest in the field, known as "AI winters". The 1980s brought a significant breakthrough with the backpropagation algorithm, which enabled neural networks to learn patterns in non-linearly separable datasets using complex and multilayered models \cite{rumelhart_learning_1986}.
 
 \subsubsection{Key Concepts and Feed-Forward}
 
@@ -33,7 +33,7 @@ Here, the weight matrix \( W^{(l)} \in \mathbb{R}^{K_l \times K_{l-1}} \) and th
 h^{(l)}(x) = g(z^{(l)}(x))
 \end{equation}
 
-During the design of a neural network, the choice of activation functions is very important. Starting by the hidden layers, we may employ a variety of non-linear activation functions, adding layers of expressiveness to the network and allowing it to learn more complex patterns. Finally, the activation function used in the output layer is determined by the type of task the network is going to perform. This careful selection directly influences the network's ability to accurately and effectively model the dataset \cite{goodfellow_deep_2016}. Refer to Table~\ref{Tables:ActivationFunctions} for a summary of the most common activation functions.
+The choice of activation function matters in two different places. In the hidden layers a non-linear function is required, because a stack of linear layers collapses into a single linear transformation and the network would gain nothing from its depth. In the output layer the function is dictated by the task: a bounded function when the output has to stay within a range, and no activation at all when it does not \cite{goodfellow_deep_2016}. Refer to Table~\ref{Tables:ActivationFunctions} for a summary of the most common activation functions.
 
 \input{Tables/ActivationFunctions}
 
@@ -43,24 +43,24 @@ Neural networks learn by iteratively adjusting weights and biases to minimise th
 
 \input{Tables/LossFunctions}
 
-The core algorithm used to train neural networks is known as backpropagation \cite{rumelhart_learning_1986}. It involves calculating the gradients of the loss function relative to the network's weights and biases, which mathematically indicate the steepest increase in the loss function. Refer to Algorithm~\ref{Codes:GradientLossFunction} for a detailed overview of how to calculate these gradients. Then, gradient descent algorithm is used to iteratively update the weights and biases in the opposite direction of the gradients, thus reducing the loss and hopefully increasing the network's accuracy. Its variants, outlined with the respective formulas in Table~\ref{Tables:GradientDescent}, address different data and computational needs. Batch gradient descent uses the entire dataset for updates, ensuring completeness but potentially struggling with large datasets. Stochastic gradient descent updates the parameters per data point, offering speed at the cost of stability. Mini-batch gradient descent strikes a balance, using data subsets for more stable and computationally efficient updates \cite{goodfellow_deep_2016}.
+The core algorithm used to train neural networks is known as backpropagation \cite{rumelhart_learning_1986}. It computes the gradient of the loss function with respect to the network's weights and biases, which gives the direction of steepest increase in the loss. Refer to Algorithm~\ref{Codes:GradientLossFunction} for a detailed overview of how these gradients are calculated. Gradient descent then updates the weights and biases in the opposite direction, reducing the loss. Its variants, outlined with the respective formulas in Table~\ref{Tables:GradientDescent}, address different data and computational needs. Batch gradient descent uses the entire dataset for each update, which is stable but expensive on large datasets. Stochastic gradient descent updates the parameters after every data point, which is faster but noisier. Mini-batch gradient descent updates on subsets of the data, which is the compromise used in practice \cite{goodfellow_deep_2016}.
 
 \input{Codes/GradientLossFunction}
 
-In Table~\ref{Tables:GradientDescent}, the learning rate \( \eta \) is an hyperparameter that influences the convergence of gradient descent. An optimal learning rate balances convergence speed and precision, preventing overshooting or slow progress that could get trapped in local minima. Adaptive learning rate techniques by adjusting \( \eta \) during training improve learning efficacy, emphasising the balance between convergence speed and accuracy in neural network training. Some other techniques to improve convergence and its speed involve normalisation and standardisation of the input data \cite{goodfellow_deep_2016}.
+In Table~\ref{Tables:GradientDescent}, the learning rate \( \eta \) is a hyperparameter that controls the size of each update. A rate that is too large overshoots the minimum, and one that is too small converges slowly and can settle in a local minimum. Methods that adapt \( \eta \) during training address both problems by changing the step size as the optimisation progresses. Normalising or standardising the input data serves the same end, since features on very different scales produce gradients on very different scales \cite{goodfellow_deep_2016}.
 
 \input{Tables/GradientDescent}
 
 \subsubsection{Bias-Variance Trade-off and Model Generalisation}
 
-The generalisation power of a neural network depends on finding a balance between bias and variance. Bias leads to underfitting, where the model overlooks underlying trends due to overly simplistic assumptions, while variance leads to overfitting, where the model interprets noise as a signal due to excessive complexity. Both underfitting and overfitting result in poor performance of the model on new data, a significant issue in Forex trading, where accurate market signal detection is essential. To prevent this, cross-validation is commonly employed to evaluate a model's generalisation power in independent training, validation and testing datasets. Regularisation techniques such as L1 and L2 are also used to moderate the model complexity by adding penalties to the loss function. Furthermore, principal component analysis (PCA) can help to find the right balance between bias and variance by selecting, extracting and generating relevant features to the model. Implementing these strategies increases the change of training a model with more generalisation power, thus allowing it to perform in out-of-sample data \cite{goodfellow_deep_2016}. Although important, these techniques are not the main focus of this research and will not be explored in full detail.
+The generalisation power of a neural network depends on finding a balance between bias and variance. Bias leads to underfitting, where the model overlooks underlying trends due to overly simplistic assumptions, while variance leads to overfitting, where the model interprets noise as a signal due to excessive complexity. Both result in poor performance on new data, which matters in Forex trading because the signal being sought is weak and the noise around it is large. Cross-validation is commonly employed to evaluate a model's generalisation power on independent training, validation and testing datasets. Regularisation techniques such as L1 and L2 moderate model complexity by adding penalties to the loss function, and dimensionality reduction methods such as principal component analysis reduce the number of inputs the model has to fit. Together these techniques raise the chance of producing a model that performs on out-of-sample data \cite{goodfellow_deep_2016}. The evaluation used in this work relies on the walk-forward procedure described in Section~\ref{Section:Implementation} rather than on these techniques directly.
 
 \subsubsection{Universal Approximation Theorem}
 
-The universal approximation theorem, formalised by Kurt Hornik in 1989, states \cite{hornik_multilayer_1989}:
+The universal approximation theorem, established by Hornik, Stinchcombe and White in 1989, can be stated as follows \cite{hornik_multilayer_1989}:
 
 \begin{quote}
-"A Neural Network with one hidden layer and a linear output can approximate arbitrarily well any continuous function, given enough hidden units."
+A neural network with one hidden layer and a linear output can approximate any continuous function arbitrarily well, given enough hidden units.
 \end{quote}
 
-This validates the capacity of neural networks to serve as universal function approximators, which is an important result in the context of creating predictive models for Forex trading because, in theory, they should be able to capture the complex underlying patterns that drive market movements, in conjunction with reinforcement learning, as we will see in the next sections.
+The theorem establishes neural networks as universal function approximators, which is what justifies their use here. It says that a network of sufficient size can represent the function mapping market observations to a trading decision. It says nothing about whether such a function can be found from data, or whether it exists in a form stable enough to be useful, and those questions are the subject of the reinforcement learning methods covered next.
