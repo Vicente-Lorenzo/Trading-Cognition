@@ -3,9 +3,11 @@
 \footnotesize
 \begin{tabularx}{\textwidth}{@{}lXl@{}}
 \toprule
-\textbf{Indicator Name} & \textbf{Formula} & \textbf{Range} \\ 
+\textbf{Indicator Name} & \textbf{Formula} & \textbf{Range} \\
 \midrule
 Price Momentum & $\text{PM}_t = \frac{\text{Price}_t - \text{Price}_{t-1}}{\text{Price}_{t-1}}$ & - \\
+\addlinespace
+Rate of Change & $\text{ROC}(N)_t = \ln\left(\frac{\text{Price}_t}{\text{Price}_{t-N}}\right)$ & - \\
 \addlinespace
 Price Acceleration & $\text{PA}_t = \frac{\text{Short Linear Regression Coefficient}}{\text{Long Linear Regression Coefficient}} = \frac{\beta_\text{short}}{\beta_\text{long}}$ & - \\
 \addlinespace
@@ -33,7 +35,7 @@ Moving Average Convergence Divergence & $\text{MACD}_t = \text{EMA}(N_{\text{sho
 \addlinespace
 & where typically $N_{\text{short}} = 12$ and $N_{\text{long}} = 26$ & \\
 \addlinespace
-Stochastic RSI & $\text{StochRSI}(N)_t = \frac{\text{RSI}(N)_t - \max(\text{RSI}(N))}{\max(\text{RSI}(N)) - \min(\text{RSI}(N))}$ & [0, 100] \\
+Stochastic RSI & $\text{StochRSI}(N)_t = \frac{\text{RSI}(N)_t - \min(\text{RSI}(N))}{\max(\text{RSI}(N)) - \min(\text{RSI}(N))}$ & [0, 1] \\
 \addlinespace
 Stochastic Oscillator & $\text{Stoch \%K}(N)_t = \frac{\text{Close}_t - \text{LL}(N)_t}{\text{HH}(N)_t - \text{LL}(N)_t} \times 100$ & [0, 100] \\
 \addlinespace
