@@ -1,8 +1,16 @@
 \section{Related Work}
 \label{Section:RelatedWork}
 
-This section reviews the existing literature on the application of deep reinforcement learning (DRL) in financial trading, covering a variety of markets, datasets, neural network architectures, reinforcement learning paradigms, optimisation and training techniques and key findings. The research process started with surveys to acquire a quick understanding of the current state-of-the-art and to properly redirect the attention towards the right papers. Subsequently, the article research was carried out and all relevant information was summarised and put in table format.
+This section reviews the published work on deep reinforcement learning applied to financial trading. The review was carried out in two stages. Surveys were read first, to establish which problems the field treats as open and which papers are worth reading in full. Individual articles were then read and their design decisions recorded in a common format, so that studies using different markets and different algorithms could be compared on the same terms.
+
+Eighteen articles were examined in that way. Their basic features are collected in Table~\ref{Tables:BasicRelatedWork} and the design decisions inside each agent in Table~\ref{Tables:AdvancedRelatedWork}, and the discussion below refers to both throughout.
 
 \input{Sections/Section3/Section3.1-SurveyResearch}
 
 \input{Sections/Section3/Section3.2-ArticleResearch}
+
+\input{Sections/Section3/Section3.3-ResearchGap}
+
+The studies reviewed here answer the question of whether a deep reinforcement learning agent can learn a profitable trading policy. They say much less about the conditions under which that answer holds, because the environment each agent was trained in is usually described in a sentence or two and is rarely reproducible from the description given.
+
+That environment is the part this work had to build before the question could be asked. An agent trained against a simplified market learns to exploit the simplification, so the worth of any result depends on how the environment charges for trading, advances time and fills orders. Section~\ref{Section:Implementation} describes that environment and the agent that runs inside it.

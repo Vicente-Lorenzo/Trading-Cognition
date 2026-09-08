@@ -67,6 +67,8 @@ M = \frac{V}{L}
 
 Leverage does not change the profit or loss of a position, only the capital reserved against it, so it acts on the return of the account rather than on the return of the trade.
 
+These charges do not apply uniformly across account types, and the choice of account is therefore part of the design of a strategy rather than an administrative detail. A raw-spread account quotes the interbank spread with no markup and recovers its margin through the commission, which makes the total cost of a position lower and, more usefully, explicit: the implicit part shrinks to the market spread and the rest is a published rate. A swap-free account charges no overnight financing at all. The two together suit a strategy that holds positions for days rather than seconds, because such a strategy pays the spread and the commission only a few times per position but would otherwise pay financing on every night the position stays open. This work evaluates on an account that is both, so the spread and the commission are the only charges applied, and the financing term is genuinely zero rather than estimated.
+
 \subsubsection{Financial Analysis: Main Types and Formulas}
 
 Representing the data is one half of the problem; the other is analysing it to decide what to trade. Financial analysis is generally divided into three types \cite{lim_handbook_2015}:
@@ -96,8 +98,9 @@ The four tables survey indicators in common use rather than the contents of any 
 Candlestick patterns take a different approach. Rather than deriving a value through a calculation, they describe recognisable shapes formed by one or more candlesticks that traders associate with a change in behaviour \cite{rhoads_candlestick_2022}. Such patterns can be encoded numerically and supplied to a model in the same way as an indicator \cite{jansen_machine_2020}, although this work does not use them: the observation is built from indicators alone.
 
 \subsubsection{Performance Measurement: Returns, Risk and Ratios}
+\label{Subsection:PerformanceMeasurement}
 
-A trading strategy is judged by what it earns and by the risk taken to earn it, so a single return figure is not enough to compare two strategies. The measures below are the ones reported in Section~\ref{Section:ExperimentalResults}.
+A trading strategy is judged by what it earns and by the risk taken to earn it, so a single return figure is not enough to compare two strategies. The measures below are the ones reported in Section~\ref{Section:ExperimentalResults}. They are defined on an equity series and therefore apply unchanged to a portfolio of several strategies, computed on the combined equity rather than on each strategy separately, which matters because a portfolio's risk depends on how its components move together and not only on their individual risks.
 
 The total return over a period compares final and initial account equity $E$:
 
